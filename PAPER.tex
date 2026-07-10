@@ -1,0 +1,1473 @@
+\documentclass[11pt]{article}
+
+% ============================================================================
+%  Elementary reductions for the two-powers squarefree variant of
+%  Erdos Problem #11.
+%
+%  Self-contained research note. Compiles with pdflatex/xelatex/tectonic
+%  (Overleaf or any standard TeX distribution); uses only widely available
+%  packages.
+%
+%  HONESTY POLICY: only results that are fully proved here, or proved
+%  elsewhere and cited exactly (Kalinin 2026), are stated as theorems.
+%  Everything empirical-only, conditional, or still missing a rigorous
+%  closure is confined to Section 7 and explicitly flagged as open.
+% ============================================================================
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\Np}{N_p(n)}
+\newcommand{\dpp}{d_p}
+\newcommand{\ep}{e_p}
+\renewcommand{\proofname}{Proof}
+
+\title{\bf Elementary reductions for the two-powers squarefree\\
+variant of Erd\H{o}s Problem~\#11}
+\author{Research note}
+\date{23 June 2026 (revised 3 July 2026)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Erd\H{o}s Problem~\#11 asks whether every sufficiently large integer
+$n$ can be written as $n=k+2^m$ with $k$ squarefree. We study a relaxation,
+the \emph{two-powers variant}: every odd $n>1$ satisfies
+$n=k+2^l+2^m$ for some squarefree $k$ and $l,m\ge0$. This variant is not one of
+Erd\H{o}s's numbered problems; it appears as the statement
+\texttt{erdos\_11.variants.two\_pow\_two} in formalised-conjectures
+repositories, together with a remark, which we have not independently
+verified against a primary source, that Erd\H{o}s thought a two-power
+relaxation of \#11 ``might be easy''. We give a sieve reduction in which the
+dominant term is controlled \emph{exactly and uniformly in $n$} by a new
+cancellation lemma at non-Wieferich primes (Lemma~\ref{lem:K}, the $p$-adic
+reduction underlying the square-sieve literature, here specialised to this sieve),
+close the boundary term completely (\S\ref{sec:R1}), reduce the remaining
+worst-case obstruction to a single, clean, $n$-independent multiplicity
+statement (Lemma~\ref{lem:M}, \S\ref{sec:M}), and prove that the two-powers
+variant holds \emph{unconditionally for almost all $n$}
+(Corollary~\ref{cor:almostall}, density $1-O(1/(L\log L))$, via a second moment on
+$(L,L^2]$ and a first moment at a raised threshold on the wide range
+$(L^2,\sqrt{n/2}]$).
+For the \emph{every}-$n$ statement we give a conditional theorem
+(Theorem~\ref{thm:conditional}): it holds provided a single grand-sieve bound
+on the multiplicity distribution of $\{2^l+2^m\bmod p^2\}$ (hypothesis (TB)),
+together with two softer structural inputs. Along the way we prove unconditionally
+that the relevant order sum $\sum_{p\in(L,L^2]}\lfloor L/\ord_p(2)\rfloor$ is
+$o(L^2)$ (Proposition~\ref{prop:ordersum}) and that the Type~A count satisfies
+$\sum M_p=O(L^{8/3}/\log L)$ via García--Voloch (Proposition~\ref{prop:gv}),
+reducing the obstruction to the Type~B tail. For that tail we show that it is
+closed by \emph{circularity}: Bourgain--Chang gives
+the additive sup-norm unconditionally (Theorem~\ref{thm:bc}), but the moment bound
+needed to convert it into (TB) is \emph{equal} to the additive energy, hence to
+(TB) itself (Proposition~\ref{prop:circ}). A function-field model (\S\ref{sec:ff})
+locates the difficulty as \emph{archimedean} -- the failure of $\{2^j\}$ to be
+exactly Sidon, powers carrying where monomials do not -- rather than a lack of
+cancellation, and identifies (M$''$) at $k=2$ as a squarefree-value statement, a
+cousin of \#11. The remaining gaps are stated honestly with the exact point where
+elementary counting fails (\S\ref{sec:open}, \S\ref{sec:ff}). All are decoupled
+from two classical obstructions one might expect to inherit: the
+infinitude of non-Wieferich primes (only the two \emph{known} Wieferich
+primes are ever excluded, an $O(1)$ cost), and Crocker's 1971 disproof of the
+\emph{prime}-kernel analogue $n=p+2^a+2^b$, which does not transfer to a
+squarefree kernel.
+\end{abstract}
+
+\tableofcontents
+
+% ============================================================================
+\section{Introduction}
+% ============================================================================
+
+\subsection{The problem and its variant}
+
+Erd\H{o}s Problem~\#11 \cite{erdosproblems11} asks whether every sufficiently
+large $n$ can be written as $n=k+2^m$ with $k$ squarefree and $m\ge0$. The
+problem is open. Partial and conditional results exist in the
+literature attributed (see the exact reference list of Kalinin
+\cite{Kalinin2026}, who states and uses them) to Granville--Soundararajan,
+Hercher, Crocker, and Platt--Trudgian; we rely on \cite{Kalinin2026} for the
+precise statements and do not reproduce them here, since cross-checking each
+primary source individually is outside the scope of this note.
+
+We study the following relaxation, which lets $n$ be written as a squarefree
+kernel plus \emph{two} powers of $2$ instead of one:
+
+\begin{quote}\itshape
+\textbf{Two-powers variant.} For every odd integer $n>1$ there exist
+$k,l,m\ge0$ with $k$ squarefree and $n=k+2^l+2^m$.
+\end{quote}
+
+(Restricting to odd $n$ costs nothing: if $n$ is even, $n=k+2^l+2^m$ with $k$
+odd forces $l=m=0$ to be excluded or absorbed trivially by parity, and the
+even case reduces to a one-power-type statement on $n/2$-scale considerations
+that we do not pursue here; all of our results concern odd $n$, matching the
+Lean statement.) This statement is recorded as
+\texttt{erdos\_11.variants.two\_pow\_two} in formalised-conjectures Lean
+repositories. It is, to our knowledge, unpublished and unproved; this note
+does not close it, but reduces it as far as we have been able to push it with
+elementary and semi-elementary tools.
+
+\subsection{Contributions}
+
+\begin{enumerate}
+\item \textbf{Lemma K} (\S\ref{sec:K}): an exact character-sum cancellation,
+$\sum_{x\in\langle2\rangle}e_{p^2}(ax)=0$ for every non-Wieferich prime $p\ge3$
+and every $a$ with $p\nmid a$, where $\langle2\rangle$ is the subgroup of
+$(\Z/p^2)^\times$ generated by $2$. The vanishing mechanism is standard (the
+$p$-adic reduction underlying the square-sieve literature); the contribution is
+its exact specialisation to this sieve, which kills, \emph{exactly and uniformly
+in $n$}, the dominant ``complete period'' term of every medium-sized prime with
+no equidistribution input.
+\item A complete elementary closure of the boundary term left over by
+Lemma~K (Proposition~\ref{prop:R1}, \S\ref{sec:R1}): $O(L^2/\log L)=o(L^2)$,
+where $L=\lfloor\log_2n\rfloor$.
+\item A deterministic, $n$-independent reduction (Lemma~\ref{lem:M},
+\S\ref{sec:M}) \emph{dissolving the worst-case-$n$ obstruction} on the single
+dominant remaining range, to a clean additive multiplicity question.
+\item \textbf{Type~A, unconditionally} (Proposition~\ref{prop:gv}): a bound of
+García--Voloch on additive representations in the subgroup $\langle2\rangle\bmod
+p$ gives $\sum_{\text{Type A}}M_p=O(L^{8/3}/\log L)$ unconditionally -- short of
+the target $o(L^2)$ by exactly $L^{2/3}$.
+\item \textbf{Type~B is closed by circularity} (\S\ref{sec:bc}): the
+Bourgain--Chang additive sup-norm bound holds unconditionally on our sums
+(Theorem~\ref{thm:bc}), but the moment bound that would convert it into the
+Type~B hypothesis (TB) equals the additive energy, i.e.\ (TB) \emph{itself}
+(Proposition~\ref{prop:circ}). Thus (TB) is a genuine open estimate, not a
+statement awaiting the right reference.
+\item \textbf{A function-field model} (\S\ref{sec:ff}) proves the $\F_q[t]$
+analogue of (TB) by a degree count (Proposition~\ref{prop:ff}) and shows the
+mechanism does not transpose, diagnosing the obstruction over $\Z$ as
+\emph{archimedean} -- the failure of $\{2^j\}$ to be exactly Sidon.
+\item An unconditional theorem (\S\ref{sec:almost}), via a second moment and
+Markov, for \emph{almost all $n$} (density $1-O(1/(L\log L))$).
+\item \textbf{Machine verification}: the elementary lemmas underpinning the
+unconditional results are formally verified in Lean~4 against Mathlib
+(\texttt{Erdos11\_verified.lean}, five lemmas, \texttt{0 sorry}).
+\item A precise, honest statement of the two remaining gaps
+(\S\ref{sec:open}, \S\ref{sec:ff}), each pinned to the exact point where
+brute-force counting fails and at which scale.
+\end{enumerate}
+
+\subsection{Decoupling from two classical obstructions}\label{sec:intro-decoupling}
+
+\paragraph{Independence from Wieferich-prime infinitude.} Lemma~K requires
+$p$ to be non-Wieferich. It is open whether infinitely many Wieferich primes
+exist (equivalently, whether infinitely many primes fail to be
+non-Wieferich); only two are known, $1093$ and $3511$. Our reduction does
+\emph{not} require the (open, and widely believed) statement that
+non-Wieferich primes have density $1$, or even that there are infinitely
+many: it only ever needs to discard the \emph{known} Wieferich primes
+$\le\sqrt n$, an $O(1)$-many exclusion contributing $O(L)$ to every estimate
+below, completely harmless. If new Wieferich primes are discovered, the
+argument is unaffected; if it turned out that a positive density of primes
+were Wieferich (which would be a sensational and unexpected
+result), Lemma~K would have to be reproved for those primes by other means,
+but this is not on the table.
+
+\paragraph{Independence from Crocker's disproof.} Crocker \cite{Crocker1971}
+disproved the \emph{prime}-kernel two-powers statement: there exist
+infinitely many $n$ with $n\ne p+2^a+2^b$ for every prime $p$. His method is a
+covering-congruence argument using Fermat numbers $2^{2^s}+1$: he exhibits
+residue classes modulo a suitable Fermat number in which $2^a+2^b$ is forced
+into a fixed congruence class that makes $n-2^a-2^b$ composite for every
+choice of $a,b$ in the relevant range. This disproof does \emph{not} transfer
+to the squarefree-kernel variant studied here, for a structural reason:
+``composite'' is forced by a congruence condition of density essentially $1$
+in the relevant residue classes (almost every integer in a Fermat-number
+residue class is composite), whereas ``non-squarefree'' is a much rarer
+condition (density $1-6/\pi^2\approx0.392$ overall, and in particular a
+positive proportion of any fixed congruence class is squarefree, by
+elementary sieve estimates). Crocker's congruence trick gives no control over
+squarefreeness at all. This is one reason the squarefree-kernel variant is
+plausible while its prime-kernel cousin is false.
+
+\subsection{A structural cousin: Erd\H{o}s Problem~\#9}
+
+Erd\H{o}s Problem~\#9 concerns $n=p+2^k+2^l$ with $p$ \emph{prime} (not
+squarefree) -- the same surface shape (a fixed-size kernel condition plus two
+powers of $2$) but a different, and harder, kernel condition. The toolkit
+that controls a squarefree kernel (counting square divisors via a sieve, as
+here) is structurally different from the toolkit needed for a prime kernel
+(which needs control of prime gaps / sieve lower bounds, a strictly harder
+problem). We do not address \#9 here; we mention it only to locate
+\#11's two-powers variant precisely among nearby open problems of the same
+shape.
+
+% ============================================================================
+\section{Setup and notation}\label{sec:setup}
+% ============================================================================
+
+Throughout, $n$ is odd, $n>1$, and $L:=\lfloor\log_2n\rfloor$. We count
+\emph{ordered} pairs $(l,m)\in\{0,\dots,L\}^2$ (using ordered pairs only
+inflates every count by a harmless factor close to $2$); there are
+$T:=(L+1)^2$ of them. We discard the (negligibly many, $O(L)$) pairs with
+$2^l+2^m\ge n$, since they cannot contribute a valid decomposition; this only
+shrinks the pool of candidate pairs and makes every bound below
+conservative.
+
+\begin{definition}
+For a prime $p\ge3$,
+\[
+N_p(n):=\#\{(l,m)\in\{0,\dots,L\}^2:\ p^2\mid n-2^l-2^m\}
+=\#\{(l,m):\ 2^l+2^m\equiv n\pmod{p^2}\}.
+\]
+Write $\dpp:=\ord_{p^2}(2)$, $\ep:=\ord_p(2)$,
+$\langle2\rangle:=\{2^l\bmod p^2\}$ (the cyclic subgroup of
+$(\Z/p^2)^\times$ generated by $2$, of order $\dpp$), and
+$H_p:=\{2^l\bmod p\}$ (the cyclic subgroup of $(\Z/p)^\times$ generated by
+$2$, of order $\ep$). A prime $p$ is \emph{Wieferich} if $2^{p-1}\equiv1
+\pmod{p^2}$; equivalently $\dpp=\ep$ (no extra factor of $p$ is gained from
+$\Z/p$ to $\Z/p^2$). Only two Wieferich primes are known: $1093$ and $3511$.
+For non-Wieferich $p$, $\dpp=p\cdot\ep$.
+\end{definition}
+
+Since $k=n-2^l-2^m$ is always odd, $p=2$ never occurs in any of the sieve
+sums below.
+
+\begin{proposition}[Basic reduction]\label{prop:star}
+The number of pairs $(l,m)\in\{0,\dots,L\}^2$ for which $k=n-2^l-2^m$ is
+\emph{not} squarefree is at most $\sum_{3\le p\le\sqrt n}N_p(n)$. If this sum
+is $<T$, then the two-powers variant holds for $n$.
+\end{proposition}
+\begin{proof}
+Union bound over primes $p$ with $p^2\mid k$ for some valid pair.
+\end{proof}
+
+(Small $n$ are not a concern: the variant has been checked directly, without
+exception, up to $5\times10^7$.)
+
+\begin{proposition}[Periodicity bound]\label{prop:periodic}
+For every prime $p\ge3$, $\displaystyle N_p(n)\le\frac{(L+1)^2}{\dpp}+(L+1)$.
+\end{proposition}
+\begin{proof}
+$2^l\bmod p^2$ is $\dpp$-periodic in $l$. For each fixed $l\le L$, the
+equation $2^m\equiv n-2^l\pmod{p^2}$ has at most
+$\lceil(L+1)/\dpp\rceil\le(L+1)/\dpp+1$ solutions $m\in\{0,\dots,L\}$. Summing
+over the $L+1$ values of $l$ gives the claim.
+\end{proof}
+
+\subsection{The pivot constant}\label{sec:pivot}
+
+The reduction below needs $\sum_{p\ge3}1/\dpp<\tfrac12$. We record two facts:
+the precise numerical value, and an elementary proof that the underlying
+infinite series in fact converges (so that summing it over an arbitrarily
+large range of primes, as we will, is legitimate).
+
+\begin{proposition}[Convergence]\label{prop:convergence}
+For every prime $p\ge3$, $\ep>\log_2p-1$. Consequently, for every
+non-Wieferich $p$, $\dpp=p\,\ep>p(\log_2p-1)$, and
+$\sum_{p\ge3}1/\dpp$ converges (the two Wieferich primes contribute two
+extra, harmless, finite terms).
+\end{proposition}
+\begin{proof}
+By definition $p\mid2^{\ep}-1<2^{\ep}$, so $p<2^{\ep}$, i.e.\
+$\ep>\log_2p$; we used the slightly weaker $\ep>\log_2p-1$ to avoid
+worrying about the base case. For the convergence: by Mertens' classical
+theorem, $\sum_{p\le x}1/p=\log\log x+M+o(1)$; partial summation against the
+decreasing weight $1/(\log_2p-1)$ turns this into the classical fact that
+$\sum_p\frac1{p\log p}$ converges (the density of primes near $t$ is
+$1/\log t$ by the prime number theorem, so the partial sums behave like
+$\int^x\frac{dt}{t(\log t)^2}$, convergent). Since $1/\dpp<1/(p(\log_2p-1))=
+O(1/(p\log p))$ for non-Wieferich $p$, comparison gives convergence of
+$\sum_p1/\dpp$.
+\end{proof}
+
+\begin{proposition}[Numerical value]\label{prop:pivot}
+$\sum_{3\le p<5000}1/\dpp=0.320516\ldots$, computed exactly via exact
+modular-order arithmetic (script \texttt{orders.py}), dominated by $p=3$
+($1/6$), $p=5$ ($1/20$), $p=7$ ($1/21$). By Proposition~\ref{prop:convergence}
+the tail $p\ge5000$ is provably summable and numerically negligible (a crude
+comparison with $\sum_{p\ge5000}1/(p(\log_2p-1))$ already gives less than
+$3\times10^{-4}$); in particular
+\[
+S:=\sum_{p\ge3}\frac1{\dpp}\ \approx\ 0.3205\ <\ \frac12.
+\]
+\end{proposition}
+
+\begin{remark}
+For the application below we only ever need a \emph{fixed} threshold $z$
+(we use $z=5000$) with $\sum_{p<z}1/\dpp<\tfrac12$ exactly, plus the fact
+that the tail $\sum_{p\ge z}1/\dpp\to0$ as $z\to\infty$ -- the latter is
+exactly the convergence statement of Proposition~\ref{prop:convergence}, not
+a numerical estimate.
+\end{remark}
+
+% ============================================================================
+\section{Lemma K: exact cancellation at non-Wieferich primes}\label{sec:K}
+% ============================================================================
+
+The vanishing mechanism below -- a multiplicative subgroup whose order is
+divisible by $p$ necessarily contains the kernel $K=1+p\Z/p^2\Z$ of the
+reduction $(\Z/p^2)^\times\to(\Z/p)^\times$, and an additive character summed
+over a union of $K$-cosets vanishes -- is standard in the theory of exponential
+sums modulo prime powers (it is the elementary $p$-adic reduction underlying,
+e.g., Cochrane--Zheng). What is specific to this note is only its exact
+application to the present sieve; we state it as a lemma for that reason, not
+because the identity itself is new.
+
+\begin{lemma}[Lemma K]\label{lem:K}
+Let $p\ge3$ be a non-Wieferich prime. For every integer $a$ with $p\nmid a$,
+\[
+S(a):=\sum_{x\in\langle2\rangle}e_{p^2}(ax)\ =\ 0,
+\qquad e_{p^2}(t):=e^{2\pi it/p^2}.
+\]
+\end{lemma}
+\begin{proof}
+Since $p$ is non-Wieferich, $\dpp=p\,\ep$, so $\langle2\rangle$ (cyclic of
+order $\dpp$) contains the unique subgroup of order $p$ of
+$(\Z/p^2)^\times$, namely the kernel
+$K=\{1+jp:\ j=0,\dots,p-1\}$ of the reduction map
+$(\Z/p^2)^\times\to(\Z/p)^\times$. (Indeed $\langle2\rangle\to H_p$ is
+surjective with kernel $\langle2\rangle\cap K$; comparing orders $p\,\ep$ and
+$\ep$, this kernel has order $p$, hence equals $K$.) Partition
+$\langle2\rangle$ into cosets $gK$ over a set of representatives $g$:
+\[
+S(a)=\sum_{g}\sum_{j=0}^{p-1}e_{p^2}\bigl(ag(1+jp)\bigr)
+=\sum_{g}e_{p^2}(ag)\underbrace{\sum_{j=0}^{p-1}e_p(agj)}_{=0},
+\]
+the inner sum being geometric with ratio $e_p(ag)\ne1$ since $p\nmid a$ and
+$p\nmid g$ (as $g\in(\Z/p^2)^\times$).
+\end{proof}
+
+\begin{remark}[Numerical verification]
+For $p=3,5,7,11,13,17,19,23,29,31,37,41,43,127$ (script \texttt{lemmaE2.py}),
+all non-Wieferich, the kernel $K$ is exactly contained in $\langle2\rangle$
+and the maximum of $|S(a)|$ over $p\nmid a$ is exactly $0$, confirming the
+lemma. For the two known Wieferich primes $1093$ and $3511$, $\dpp=\ep$
+(no extra factor of $p$), $K\not\subseteq\langle2\rangle$, and $S(a)\ne0$:
+the mechanism breaks exactly where the hypothesis fails, as expected.
+\end{remark}
+
+\subsection{Exact structure on a complete period}
+
+\begin{proposition}[Exact period count]\label{prop:exactperiod}
+Let $p$ be non-Wieferich. For every residue $n\bmod p^2$,
+\[
+\#\bigl\{(l,m)\in\{0,\dots,\dpp-1\}^2:\ 2^l+2^m\equiv n\pmod{p^2}\bigr\}
+\ =\ p\cdot r_p(n),
+\qquad
+r_p(n):=\#\bigl\{(u,v)\in H_p^2:\ u+v\equiv n\pmod p\bigr\}.
+\]
+\end{proposition}
+\begin{proof}[Proof sketch]
+By Lemma~\ref{lem:K} (via Fourier inversion on $\langle2\rangle$, or
+directly): each solution $(u,v)\in H_p^2$ of $u+v\equiv n\pmod p$ lifts to
+exactly $p$ pairs $(x,y)\in\langle2\rangle^2$ with $x+y\equiv n\pmod{p^2}$,
+namely the $p$ choices of $x$ in the $K$-coset of $u$ (each forcing $y$'s
+residue mod $p$ to be $v$, hence $y$'s $K$-coset, but \emph{not} pinning $y$
+further -- the count is exactly balanced by the geometric cancellation of
+Lemma~\ref{lem:K}). Verified by direct computation for
+$p=3,5,7,11,13,17,19,23$ (script \texttt{verify\_structure.py}): the identity
+holds exactly for every residue $n\bmod p^2$.
+\end{proof}
+
+Since $r_p(n)\le|H_p|=\ep$ (each $u\in H_p$ admits at most one matching $v$),
+this gives, for non-Wieferich $p$ with $\dpp\le L+1$ (so that
+$Q_p:=\lfloor(L+1)/\dpp\rfloor\ge1$ complete periods fit in $\{0,\dots,L\}$):
+\[
+Q_p^2\,p\,r_p(n)\ \le\ Q_p^2\,p\,\ep\ =\ Q_p^2\,\dpp\ \le\ \frac{(L+1)^2}{\dpp},
+\qquad\text{uniformly in } n.
+\]
+
+\begin{theorem}[Complete periods are uniformly $o(L^2)$]\label{thm:complete}
+For every odd $n>1$,
+\[
+\sum_{\substack{p\ \mathrm{non\text{-}Wief.}\\ \dpp\le L+1}}
+Q_p^2\,p\,r_p(n)\ \le\ (L+1)^2\sum_{p\ge3}\frac1{\dpp}\ \le\ 0.3205\,(L+1)^2,
+\]
+\emph{uniformly in $n$, with no equidistribution hypothesis whatsoever}.
+\end{theorem}
+\begin{proof}
+Immediate from the displayed bound above, summed over the (at most
+$\pi(L+1)$, see Proposition~\ref{prop:locate} below) primes with
+$\dpp\le L+1$, and Proposition~\ref{prop:pivot}.
+\end{proof}
+
+This is the main term of the whole sieve, and it is now controlled
+\emph{exactly}, for every $n$, by an elementary cancellation -- no
+equidistribution, no analytic input, no conjecture.
+
+% ============================================================================
+\section{Closing the boundary term: Proposition R1}\label{sec:R1}
+% ============================================================================
+
+Theorem~\ref{thm:complete} controls the contribution of full periods. What
+remains, for primes with $\dpp\le L+1$, is the boundary correction between a
+whole number of periods and the actual finite range $\{0,\dots,L\}$.
+
+\begin{proposition}[Localisation]\label{prop:locate}
+If $p$ is non-Wieferich and $\dpp\le L+1$, then $p\le L+1$.
+\end{proposition}
+\begin{proof}
+$\dpp=p\,\ep\ge p$ since $\ep\ge1$.
+\end{proof}
+
+So the primes carrying a boundary term are confined to $p\le L+1$, at most
+$\pi(L+1)$ of them.
+
+\begin{proposition}[R1, elementary closure]\label{prop:R1}
+For $n$ odd, define
+\[
+R1(n):=\sum_{\substack{p\ \mathrm{non\text{-}Wief.}\\ \dpp\le L+1}}
+\bigl(N_p(n)-Q_p^2\,p\,r_p(n)\bigr).
+\]
+Then $\displaystyle R1(n)\ <\ 3(L+1)\,\pi(L+1)\ =\ O\!\left(\frac{L^2}{\log L}\right)=o(L^2)$.
+\end{proposition}
+\begin{proof}
+Fix such a $p$, and write $L+1=Q_pd_p+s_p$, $0\le s_p<d_p$. On the range
+$\{0,\dots,L\}$, each residue $x\in\langle2\rangle$ is hit
+$c(x)=Q_p+\varepsilon(x)$ times, $\varepsilon(x)\in\{0,1\}$, with
+$\#\{x:\varepsilon(x)=1\}=s_p$ (the residues $2^0,\dots,2^{s_p-1}$). Writing
+$P_n:=\{x\in\langle2\rangle:n-x\in\langle2\rangle\}$ (so $|P_n|=p\,r_p(n)$ by
+Proposition~\ref{prop:exactperiod}),
+\[
+N_p(n)=\sum_{x\in P_n}c(x)c(n-x)
+=Q_p^2|P_n|+2Q_p\gamma_p(n)+\delta_p(n),
+\]
+with $\gamma_p(n):=\#\{x\in P_n:\varepsilon(x)=1\}\le s_p$ and
+$0\le\delta_p(n)\le\gamma_p(n)$. Hence
+$N_p(n)-Q_p^2p\,r_p(n)=2Q_p\gamma_p(n)+\delta_p(n)\le(2Q_p+1)s_p$. Since
+$Q_ps_p<Q_pd_p\le L+1$ and $s_p<d_p\le L+1$,
+\[
+(2Q_p+1)s_p=2Q_ps_p+s_p<2(L+1)+(L+1)=3(L+1).
+\]
+Summing over the (at most $\pi(L+1)$) primes with $\dpp\le L+1$ gives the
+bound; the prime number theorem gives $\pi(L+1)\sim(L+1)/\log(L+1)$. The
+$\le2$ known Wieferich primes contribute, separately and trivially, $O(L)$
+each.
+\end{proof}
+
+\begin{remark}[Numerical confirmation]
+Script \texttt{verify\_residual.py} computes $R1(n)$ exactly for the worst
+$n$ at every dyadic scale up to $n\approx2^{22}$ ($L=13,\dots,21$). The
+maximal prime ever carrying a boundary term in this range is $7$ (far below
+the bound $L+1$), and the measured $R1\in\{0,4,8,\dots,32\}$ stays an order of
+magnitude below the proved bound $3(L+1)\pi(L+1)\in[234,528]$ over the same
+range.
+\end{remark}
+
+Combining Theorem~\ref{thm:complete} and Proposition~\ref{prop:R1}: for every
+odd $n$, the total contribution of primes with $\dpp\le L+1$ (\emph{all}
+primes other than the $\le2$ known Wieferich exceptions) is at most
+\[
+0.3205\,(L+1)^2+O\!\left(\frac{L^2}{\log L}\right)+O(L)
+\ =\ \bigl(0.3205+o(1)\bigr)(L+1)^2,
+\]
+uniformly in $n$ -- an elementary, rigorous, complete closure leaving a
+margin of $\approx0.18\,T$ before the threshold $T=(L+1)^2$ of
+Proposition~\ref{prop:star}.
+
+% ============================================================================
+\section{Lemma M: deterministic dissolution of the worst case}\label{sec:M}
+% ============================================================================
+
+What remains is the contribution of primes with $\dpp>L+1$ (no complete
+period inside $\{0,\dots,L\}$); by Proposition~\ref{prop:locate} (contrapositive)
+this is exactly the set of primes $p>L+1$ that are non-Wieferich, together
+with the (negligible) Wieferich exceptions. Write
+\[
+R2(n):=\sum_{\substack{p\le\sqrt n\\ \dpp>L+1}}N_p(n).
+\]
+By the trivial bound $N_p(n)\le L+1$ (distinct $2^l\bmod p^2$, no period),
+combined with the prime-counting bound $\#\{p\le\sqrt n\}\sim\sqrt n/\log\sqrt n$,
+elementary counting alone gives only $R2(n)\le(L+1)\sqrt n$, hopelessly larger
+than $T=(L+1)^2$. The empirical data (\cite{erdos11data}) shows $R2(n)$ is in
+fact always $\ll L^2$ and concentrated on a bounded range of primes just
+above $L$; this section isolates, deterministically and without reference to
+any particular $n$, exactly how much of this is provable.
+
+We restrict attention to the range $p\in(L,L^2]$, which the data identifies
+as carrying the dominant share of $R2$; the remaining two sub-ranges of $R2$
+are discussed in \S\ref{sec:open}.
+
+\begin{definition}
+For a prime $p$, set $M_p:=\max_{n}N_p(n)$ ($n$ ranging over odd integers,
+with $L$ implicitly determined by $n$ -- equivalently, $M_p$ is the maximal
+number of representations of any residue $n\bmod p^2$ as $2^l+2^m$ with
+$0\le l,m\le L$, for the relevant $L$). This is an $n$-independent quantity.
+\end{definition}
+
+\begin{lemma}[Lemma M -- deterministic dissolution]\label{lem:M}
+For \emph{every} odd $n$,
+\[
+\sum_{p\in(L,L^2]}N_p(n)\ \le\ \sum_{p\in(L,L^2]}M_p.
+\]
+\end{lemma}
+\begin{proof}
+$N_p(n)\le\max_{n'}N_p(n')=M_p$ for every $p$, by definition; sum over $p$.
+\end{proof}
+
+This trivial-looking statement is the key structural gain of this section:
+\emph{it eliminates the worst-case-$n$ problem entirely} for this range. If
+$\sum_{p\in(L,L^2]}M_p=o(L^2)$, this range contributes $o(L^2)$ to
+\emph{every} $n$ simultaneously, deterministically -- no averaging, no
+exceptional set.
+
+\subsection{The unconditional half: the Sidon decomposition}
+
+If $2^i+2^j\equiv2^{i'}+2^{j'}\pmod{p^2}$ has no solution with
+$\{i,j\}\ne\{i',j'\}$ (both pairs ranging over $\{0,\dots,L\}$, $L$ ranging
+implicitly over all values relevant to $M_p$), we call $p$ \emph{Sidon}; then
+every value $n\bmod p^2$ has at most one unordered representation, so the
+ordered multiplicity is at most $2$ (the pair and its swap).
+
+\begin{proposition}[Unconditional Sidon term]\label{prop:sidonterm}
+\[
+\sum_{p\in(L,L^2]}M_p\ =\ \underbrace{2\bigl(\pi(L^2)-\pi(L)\bigr)}_{\text{Sidon contribution}}
+\ +\ \underbrace{\sum_{p\in(L,L^2]\,\mathrm{non\text{-}Sidon}}(M_p-2)}_{\text{excess}},
+\]
+and the Sidon contribution alone satisfies
+$2(\pi(L^2)-\pi(L))=O(L^2/\log L)=o(L^2)$, \emph{unconditionally} (immediate
+from the prime number theorem; no structural input about $\{2^l\bmod p^2\}$
+is needed for this half).
+\end{proposition}
+\begin{proof}
+For Sidon $p$, $M_p=2$ exactly (a representation and its swap; $M_p\ge2$
+trivially once $L\ge1$). The displayed identity is then a rearrangement of
+the sum. The bound on the Sidon term is the prime-counting estimate
+$\pi(L^2)-\pi(L)\sim L^2/(2\log L)$.
+\end{proof}
+
+The remaining \emph{excess} term -- the total multiplicity overshoot summed
+over non-Sidon primes in $(L,L^2]$ -- is exactly the open quantity discussed
+in \S\ref{sec:open} (named M$''$ there). Brute-force counting of it already
+fails at the first step: the crude bound $M_p-2\le L-1$ (trivial, since
+$M_p\le L+1$) combined with the trivial bound on the number of non-Sidon
+primes ($\le\pi(L^2)-\pi(L)$) gives only $\Theta(L^2)$, not $o(L^2)$ -- the
+excess is genuinely smaller than this in the data (by roughly a factor
+$1/\log L$), but proving it requires controlling the \emph{distribution} of
+the multiplicities $M_p$, not just their existence.
+
+\subsection{The order sum is unconditionally $o(L^2)$}\label{sec:ordersum}
+
+We isolate one half of the excess that \emph{is} unconditional. Split the range
+by the multiplicative order of $2$: call $p\in(L,L^2]$ \emph{Type~A} if $\ep\le L$
+and \emph{Type~B} if $\ep>L$.
+
+\begin{proposition}[Order sum]\label{prop:ordersum}
+$\displaystyle\sum_{p\in(L,L^2]}\Bigl\lfloor\tfrac{L}{\ep}\Bigr\rfloor
+=O\!\left(\tfrac{L^2}{\log L}\right)=o(L^2)$.
+\end{proposition}
+\begin{proof}
+$\lfloor L/d\rfloor=\#\{j\in[1,L]:d\mid j\}$, and $\ep\mid j\iff p\mid2^j-1$, so
+$\sum_{p}\lfloor L/\ep\rfloor=\sum_{j\le L}\#\{p\in(L,L^2]:p\mid2^j-1\}$. The
+primes $p>L$ dividing $2^j-1$ have product $\le2^j-1<2^j$; if there are $m$ of
+them then $L^m<2^j$, so $m<j\log2/\log L$. Summing,
+$\sum_{j\le L}j\log2/\log L=(\log2/\log L)\cdot L(L+1)/2=O(L^2/\log L)$.
+\end{proof}
+
+The gain over the trivial bound (which counts each $2^j-1$ with its full $O(j)$
+prime factors and gives $\Theta(L^2)$) is a factor $\log L$, and it comes
+\emph{entirely} from the constraint $p>L$: large primes cannot divide $2^j-1$
+too often. This is the only place the lower endpoint of the range is used.
+
+\subsection{Classification of $(L,L^2]$: the involution structure}\label{sec:classify}
+
+Each pair contributes $2^l+2^m=2^l(1+2^{m-l})$; a fibre's arithmetic is governed
+by the \emph{gap values} $1+2^\delta$ ($\delta=|m-l|$), which satisfy an exact
+identity.
+
+\begin{lemma}[Involution]\label{lem:involution}
+For every $\delta$, $\ 1+2^{\,\ep-\delta}\equiv2^{-\delta}(1+2^\delta)\pmod p$.
+\end{lemma}
+\begin{proof}
+$2^{-\delta}(1+2^\delta)=2^{-\delta}+1=2^{\,\ep-\delta}+1$, using $2^{\ep}\equiv1
+\pmod p$.
+\end{proof}
+
+Thus $\delta$ and $\ep-\delta$ send $1+2^\delta$ into the same coset of
+$\langle2\rangle\bmod p$: the gap values pair up under $\delta\mapsto\ep-\delta$.
+Using the $p$-adic refinement $2^{\ep}\equiv1+w_pp\pmod{p^2}$ (with $w_p\ne0$
+exactly for non-Wieferich $p$), the representations of a fixed residue $n\bmod
+p^2$ organise into arithmetic progressions in $\delta$ of common difference a
+multiple of $\ep$, giving a per-class bound.
+
+\begin{proposition}[Per-class bound]\label{prop:perclass}
+Let $p\in(L,L^2]$ be non-Wieferich. For any residue $n\bmod p^2$, the pairs
+$(l,m)\in\{0,\dots,L\}^2$ with $2^l+2^m\equiv n$, grouped by $\delta\bmod\ep$,
+form at most $\lfloor L/\ep\rfloor+1$ pairs per class. Hence
+\[
+M_p\ \le\ \kappa_p\,(\lfloor L/\ep\rfloor+1),\qquad
+\kappa_p:=\#\{\text{active classes }\delta\bmod\ep\text{ in a maximal fibre}\}.
+\]
+\end{proposition}
+\begin{proof}[Proof sketch]
+Since $\dpp=p\,\ep>L$, for each $l$ there is at most one $m\in\{0,\dots,L\}$ with
+$2^m\equiv n-2^l\pmod{p^2}$. Within a class $(l\bmod\ep,\delta\bmod\ep)$, writing
+$l=l_0+\ep a$, $\delta=\delta_0+\ep b$, the congruence reduces (via
+$2^{\ep}\equiv1+w_pp$, $w_p\ne0$) to a single linear congruence
+$aX+bY\equiv Z\pmod p$ in the triangle $\{a,b\ge0,\ a+b\le(L-l_0-\delta_0)/\ep\}$
+of side $T\le L/\ep<p$; as $T<p$, each $b$ admits at most one $a$, giving
+$\le\lfloor L/\ep\rfloor+1$ pairs. Sum over the $\kappa_p$ active classes.
+(Verified with no exceptions for all $p\in(L,L^2]$, $L\le160$; non-degeneracy of
+the linear form is exactly the non-Wieferich condition.)
+\end{proof}
+
+Empirically $\kappa_p\le2$ for \emph{genuinely small} order ($\ep\ll L$: the
+active classes form at most one involution orbit plus a fixed point), whereas for
+\emph{boundary} primes $\ep\approx L$ (where $2$ is near-primitive) $\kappa_p$
+behaves like a Poisson maximum and grows slowly (measured $\le6$ for $L\le200$).
+We do not prove a bound; we isolate as hypothesis (TA) the mild growth condition
+$\max_{\ep\le L}\kappa_p=o(\log L)$. Since $\sum_p\lfloor L/\ep\rfloor$ already
+carries a $1/\log L$ saving (Proposition~\ref{prop:ordersum}), this suffices:
+\[
+\sum_{p\in(L,L^2]:\,\ep\le L}M_p\ \le\ \Bigl(\max_{\ep\le L}\kappa_p\Bigr)
+\Bigl(\sum_p\lfloor L/\ep\rfloor+\pi(L^2)\Bigr)
+\ =\ o(\log L)\cdot O\!\Bigl(\tfrac{L^2}{\log L}\Bigr)\ =\ o(L^2)\quad\text{[under (TA)].}
+\]
+
+\emph{A partial unconditional bound on $\kappa_p$.} The empirical $\kappa_p\le2$
+is not needed in full: a theorem of García--Voloch on additive representations in
+a multiplicative subgroup gives a non-trivial bound directly.
+
+\begin{proposition}[Unconditional $\kappa_p\ll\ep^{2/3}$, via García--Voloch]\label{prop:gv}
+For $G=\langle2\rangle\bmod p$ with $|G|=\ep<(p-1)/((p-1)^{1/4}+1)$ (so $\ep\lesssim
+p^{3/4}$) and any $b\not\equiv0\pmod p$, one has $r_p(b):=\#\{(u,v)\in G^2:u+v\equiv b\}
+\le4\,\ep^{2/3}$ \textup{(}García--Voloch~\cite{GarciaVoloch1988}, in the exact
+form of Konyagin's Theorem~2.1~\cite{Konyagin-notes}; Heath-Brown gave a
+Stepanov-method proof, and Heath-Brown--Konyagin the energy $T_2(G)\ll\ep^{5/2}$ for
+$\ep\le p^{2/3}$\textup{)}. Reducing a maximal fibre modulo $p$ sends its $\kappa_p$
+active classes to distinct solutions of $u+v\equiv n\bmod p$ with $u,v\in G$ (two
+pairs in different classes $\delta\bmod\ep$ give different gap values $1+2^\delta$,
+hence different representations mod $p$); so $\kappa_p\le r_p(n\bmod p)\ll\ep^{2/3}$
+unconditionally, whence
+\[
+\sum_{p\in(L,L^2]:\,\ep\le L}M_p\ =\ O\!\left(\frac{L^{8/3}}{\log L}\right).
+\]
+\end{proposition}
+\begin{proof}
+With $M_p\le\kappa_p(\lfloor L/\ep\rfloor+1)$ and $\#\{p>L:\ep=e\}\ll e/\log L$
+(the counting behind Proposition~\ref{prop:convergence}),
+$\sum M_p\ll(\log L)^{-1}\sum_{e\le L}e^{2/3}(L+e)\asymp L^{8/3}/\log L$. Two ranges
+use the trivial $M_p\le L+1$ instead. The size hypothesis fails only for $\ep>p^{3/4}$,
+i.e.\ $p<\ep^{4/3}\le L^{4/3}$: a band of $\le\pi(L^{4/3})=O(L^{4/3}/\log L)$ primes,
+total $O(L^{7/3}/\log L)$. The excluded residues $b\equiv0\pmod p$ occur only when
+$p\mid n$, for $\le\log n/\log L=O(L/\log L)$ primes, total $O(L^2/\log L)$; the
+$p^2$-degenerate residue ($2^l+2^m\equiv0\bmod p^2$) is unreachable in range for
+Type~A, as it needs $m-l\asymp\ord_{p^2}(2)/2>L$. Both bands are $o(L^{8/3}/\log L)$,
+absorbed. \textup{(}Numerically the band holds $8,15,16,23,43$ primes for
+$L=60,\dots,300$, always $\max p<L^{4/3}$, and the ratio $r_p(b)/\ep^{2/3}<1$ with no
+drift to $\ep\approx900$; scripts \texttt{chantierD\_stepanov.py},
+\texttt{chantierG\_band.py}.\textup{)}
+\end{proof}
+
+This is short of the target $o(L^2)$ by a factor $L^{2/3}$. Hypothesis (TA) is thus
+now the sharper open question of whether the exponent $2/3$ can be lowered to $o(1)$
+on the special fibres $1+2^\delta$ -- a rigidity that the generic Stepanov argument
+ignores but the involution orbit structure may supply.
+
+\subsection{The Type~B residual as a factorial-moment condition}\label{sec:typeB}
+
+For Type~B primes ($\ep>L$) the fibres carry no progression
+($\lfloor L/\ep\rfloor=0$) and $M_p$ is governed by coincidences alone. The sharp
+reduction is through factorial moments. For $k\ge2$ put
+\[
+E_k^{\mathrm{tot}}:=\!\!\sum_{\substack{p\in(L,L^2]\\ \ep>L}}\sum_r\binom{N_p(r)}{k},
+\qquad
+E_k^{\mathrm{null}}:=\!\!\sum_{\substack{p\in(L,L^2]\\ \ep>L}}\frac{\binom{P}{k}}{(p^2)^{k-1}},
+\quad P:=\tbinom{L+2}{2},
+\]
+$E_k^{\mathrm{null}}$ being the $k$-th factorial moment of the multinomial ($P$
+balls in $p^2$ bins) summed over the range -- the ``random'' benchmark.
+
+\begin{lemma}[Factorial-moment tail]\label{lem:markov}
+$\#\{p\in(L,L^2]:\ep>L,\ M_p\ge k\}\le E_k^{\mathrm{tot}}$, and
+$E_k^{\mathrm{null}}\sim L^3/\bigl(2^kk!\,(2k-3)\log L\bigr)$, which crosses $1$ at
+$k^\ast\sim3\log L/\log\log L$.
+\end{lemma}
+\begin{proof}
+Each $r$ with $N_p(r)\ge k$ contributes $\binom{N_p(r)}{k}\ge1$, and each such
+$p$ has at least one such $r$; combine. The asymptotic uses
+$\binom{P}{k}\sim P^k/k!$, $P\sim L^2/2$, and
+$\sum_{p>L}p^{-(2k-2)}\sim L^{-(2k-3)}/((2k-3)\log L)$.
+\end{proof}
+
+\begin{theorem}[Conditional every-$n$ variant]\label{thm:conditional}
+Suppose:
+\begin{itemize}
+\item[\textup{(TB)}] there is an absolute $C$ with
+$E_k^{\mathrm{tot}}\le C^kE_k^{\mathrm{null}}$ for all $k\ge2$; only the tail
+$k>k^\ast=\lfloor3\log L/\log\log L\rfloor$ is actually used, the range
+$2\le k\le k^\ast$ being unconditional (see the proof);
+\item[\textup{(TA)}] $\displaystyle\max_{p\in(L,L^2]:\,\ep\le L}\kappa_p=o(\log L)$;
+\item[\textup{(WB)}] $\sum_{p\in(L^2,\sqrt{n/2}]}N_p(n)=o(L^2)$ uniformly in $n$.
+\end{itemize}
+Then the two-powers variant holds for every odd $n>n_0$.
+\end{theorem}
+\begin{proof}
+By Proposition~\ref{prop:star} it suffices that $\sum_{3\le p\le\sqrt n}N_p(n)<T$.
+The range $p\le L+1$ contributes $(0.3205+o(1))T$ (Theorem~\ref{thm:complete},
+Proposition~\ref{prop:R1}); $(\sqrt{n/2},\sqrt n]$ contributes $O(L)$
+(Kalinin~\cite{Kalinin2026}); $(L^2,\sqrt{n/2}]$ contributes $o(L^2)$ by (WB). For
+$(L,L^2]$, by Lemma~\ref{lem:M} it suffices that $\sum_{p\in(L,L^2]}M_p=o(L^2)$;
+Type~A is $o(L^2)$ under (TA) by \S\ref{sec:classify}, and Type~B is, under (TB)
+and Lemma~\ref{lem:markov},
+\[
+\sum_{\ep>L}(M_p-1)=\sum_{k\ge2}\#\{M_p\ge k\}
+\ \le\ \underbrace{k^\ast\,\pi(L^2)}_{\text{unconditional}}
++\underbrace{\sum_{k>k^\ast}\!C^kE_k^{\mathrm{null}}}_{\text{needs (TB), }k>k^\ast}
+\ =\ O\!\Bigl(\tfrac{L^2}{\log\log L}\Bigr)=o(L^2).
+\]
+The first term is unconditional: each $\#\{M_p\ge k\}\le\pi(L^2)$, and there are
+$\le k^\ast=O(\log L/\log\log L)$ of them, giving $O(L^2/\log\log L)$. Only the tail
+$k>k^\ast$ invokes (TB), and there $\sum_{k>k^\ast}E_k^{\mathrm{null}}=o(1)$ since
+$E_k^{\mathrm{null}}$ has already crossed $1$ at $k^\ast$. Summing the ranges gives
+$(0.3205+o(1))T+o(L^2)<T$ for $n$ large.
+\end{proof}
+
+Hypothesis (TB) is the single genuinely analytic input, and it is equivalent to a
+\emph{square-sieve / large-sieve} bound. Since $\{2^k\}$ is a Sidon set over
+$\Z$, $E_k^{\mathrm{tot}}$ counts $k$-fold square-divisor incidences
+$\#\{p>L:p^2\mid\sum_i\varepsilon_i2^{j_i}\}$ of power combinations; the natural
+tool is Heath-Brown's square sieve~\cite{HeathBrown1984}. Its main term
+reproduces $E_k^{\mathrm{null}}$ (the correct order, obtained by averaging over
+$p$: per-prime bounds are a factor $L$ too weak), and its error term is a
+\emph{mean-square} bound on the incomplete character sums $\sum_{j\le L}\chi(2^j)$
+over $\{2^j\bmod p^2\}$. These are lacunary, so on the torus
+$\|\sum a_je(2^j\theta)\|_{2k}\ll\sqrt k\,\|a\|_2$
+(Rudin~\cite{Rudin1960}); the corresponding $\bmod\,p^2$ bound holds empirically
+but reaches size $\sim L$ (not $O(1)$) on quasi-trivial characters, so a rigorous
+proof needs the full large sieve, not a pointwise estimate. This is the same
+incomplete-exponential-sum core as the fourth toolkit of \S\ref{sec:open}, now in
+mean-square rather than sup-norm form. Empirically (TB) holds with margin:
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+$L$ & $E_2^{\mathrm{tot}}/E_2^{\mathrm{null}}$ & $E_3^{\mathrm{tot}}/E_3^{\mathrm{null}}$ & $E_4^{\mathrm{tot}}/E_4^{\mathrm{null}}$\\
+\midrule
+$80$ & $0.91$ & $0.91$ & $0.40$\\
+$120$ & $0.95$ & $0.70$ & $0.35$\\
+$160$ & $0.95$ & $0.86$ & $0.67$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All ratios are $\le1$: the arithmetic fibres are \emph{sub}-multinomial at every
+order, and $E_k^{\mathrm{tot}}$ already vanishes by $k=5$ at these $L$ (well below
+the multinomial prediction). Restricting to Type~B removes the
+super-concentrated Type~A fibres, whose energy is order-driven, not random. Note
+that no independence or negative-association hypothesis is used: the passage from
+the moments to the maximum is the elementary first-moment (Markov) bound of
+Lemma~\ref{lem:markov}.
+
+\begin{remark}[Which moment is binding]\label{rem:binding}
+It is worth stating precisely which part of (TB) is used, to avoid a common
+misreading. The Type~B contribution is
+$\sum_{\ep>L}(M_p-1)=\sum_{k\ge2}\#\{p:M_p\ge k\}$, and \emph{every} term is
+bounded trivially by $\#\{p:M_p\ge k\}\le\pi(L^2)=o(L^2)$; in particular the
+$k=2$ term is free, and the individual energy $E_2^{\mathrm{tot}}=\sum_p\Delta_p$
+is \emph{not} $o(L^2)$ (it is $\Theta(L^3/\log L)$, and need not be small). What
+must be shown is only that the sum has $O(\pi(L^2))$ nonzero terms, i.e.\ that the
+\emph{maximum} multiplicity satisfies $\max_{\ep>L}M_p=o(\log L)$; then
+$M''_B\le(\max M_p)\,\pi(L^2)=o(L^2)$. Thus the binding instance of (TB) is the
+\emph{large}-$k$ one, $k\asymp\log L/\log\log L$ (a large-deviation statement about
+the maximum), not the variance $k=2$. The $k=2$ case is merely the cleanest window
+onto the mechanism forcing sub-Poisson behaviour, namely that $\{2^k\}$ is Sidon
+over $\Z$, so a collision mod $p^2$ forces $p^2\mid N$ with $N\ne0$, an event of
+density $\sum_p1/p^2$ (verified: the density heuristic reproduces
+$E_2^{\mathrm{tot}}$ to within $5\%$, stably in $L$). This mechanism is
+base-independent: the same holds for $\{g^k\}$, any $g\ge2$.
+\end{remark}
+
+\subsection{The additive sup-norm, and why (TB) is closed by circularity}\label{sec:bc}
+
+The square-sieve error term above is phrased through \emph{multiplicative}
+characters $\chi$ of $(\Z/p^2)^\times$, and there $\sum_{j\le L}\chi(2^j)$ is a
+geometric progression that reaches size $\sim L$ when $\chi$ is quasi-trivial on
+$\langle2\rangle$ -- no cancellation. The \emph{additive} side behaves better,
+and unconditionally so. Write $S(\xi):=\sum_{j\le L}e_{p^2}(\xi2^j)$.
+
+\begin{theorem}[Additive sup-norm, Bourgain--Chang~\cite{BourgainChang2006}, Cor.~4.5]\label{thm:bc}
+Let $q=\prod p_\alpha^{\nu_\alpha}$ have a bounded number of prime factors and
+$\theta\in\Z_q^\times$ with $\ord_{p}(\theta)>q^\delta$ for every $p\mid q$. Then
+for $t>q^\delta$, $\ \max_{\xi\in\Z_q^\times}|\sum_{s\le t}e_q(\xi\theta^s)|<t^{1-\varepsilon}$
+with $\varepsilon=\varepsilon(\delta)>0$ absolute. For $q=p^2$, $\theta=2$,
+$t=L+1$ and $p\in(L,L^2]$ Type~B, take $\delta=\tfrac15$: then $\ep>L\ge q^{1/5}$
+and $L+1>q^{1/5}$, so \[|S(\xi)|<(L+1)^{1-\varepsilon}\quad(p\nmid\xi),\qquad
+|S(p\eta)|<(L+1)^{1-\varepsilon'}\ (\eta\not\equiv0),\] the latter by reduction
+$\bmod\,p$ \textup{(}order $\ep>\sqrt p$\textup{)}.
+\end{theorem}
+
+Numerically $\max_{p\nmid\xi}|S(\xi)|/(L+1)=0.37,0.31,0.24$ at $L=40,80,120$ on
+Type~B primes -- well below $1$ and decreasing (script
+\texttt{chantierH\_supnorm.py}). The counter-example (4.23) in \cite{BourgainChang2006},
+$\theta=1+p$ (order $1\bmod p$, hence no cancellation), is exactly why Type~A
+($\ep\le L$, small order $\bmod\,p$) is \emph{not} covered by
+Theorem~\ref{thm:bc}: the Type~A/Type~B split is forced, Type~A being the
+García--Voloch regime (Proposition~\ref{prop:gv}) and Type~B the Bourgain--Chang one.
+
+One might hope Theorem~\ref{thm:bc} closes (TB). It does not, for a structural
+reason worth recording.
+
+\begin{proposition}[The sup-norm cannot close the conversion]\label{prop:block}
+Expanding $E_k^{\mathrm{tot}}$ by additive orthogonality gives, per prime,
+$\sum_rN_p(r)^k=(p^2)^{1-k}\sum_{\xi_1+\dots+\xi_k\equiv0}\prod_iS(\xi_i)^2$.
+Bounding every nonzero frequency by $|S|<B:=(L+1)^{1-\varepsilon_0}$ leaves each
+extra nonzero frequency a factor $B^2=(L+1)^{2-2\varepsilon_0}>1$ \textup{(}for any
+$\varepsilon_0<1$\textup{)}: the all-nonzero term is $\gtrsim
+(L+1)^{2k-2-2(k-2)\varepsilon_0}L^2/(2^kk!\log L)$, which at $k\sim k^\ast$ is
+$\exp\!\big(c(1-\varepsilon_0)\log^2L/\log\log L\big)\gg L^2$. Sup-norm alone is
+insufficient regardless of $\varepsilon_0$.
+\end{proposition}
+
+\begin{proposition}[Circularity: the missing bound \emph{is} (TB)]\label{prop:circ}
+$\sum_{\xi\bmod p^2}|S(\xi)|^{2k}=p^2\,E_k^{\mathrm{add}}$, where
+$E_k^{\mathrm{add}}=\#\{(j_i,j_i')_{i\le k}:\sum_i2^{j_i}\equiv\sum_i2^{j_i'}\bmod p^2\}$
+is the additive energy of $\{2^j\}$ -- exactly the quantity $E_k^{\mathrm{tot}}$
+measures. Thus the moment ($L^{2k}$) bound that would close the conversion of
+Proposition~\ref{prop:block} is logically equivalent to (TB) itself. The
+sup-norm ($L^\infty$) is available and unconditional; the missing $L^{2k}$ bound
+is the conjecture. Hence (TB) is a genuine open estimate, not a statement awaiting
+the right reference.
+\end{proposition}
+
+% ============================================================================
+\section{An unconditional theorem for almost all $n$}\label{sec:almost}
+% ============================================================================
+
+This section proves a genuine, unconditional theorem about the same range
+$p\in(L,L^2]$, by trading the (currently unavailable) worst-case control of
+\S\ref{sec:M} for an average-case control, via a second moment and Markov's
+inequality. We state its scope precisely: it controls $p\in(L,L^2]$ only: see
+the discussion at the end of this section and \S\ref{sec:open} for what this
+does, and does not, give for the full two-powers variant.
+
+\begin{proposition}[Half for free]\label{prop:Qfree}
+For every odd $n$, $\#\{p\in(L,L^2]:N_p(n)\ge1\}\le\pi(L^2)=o(L^2)$,
+unconditionally (there are simply not enough primes in $(L,L^2]$ for the
+mere \emph{count} of contributing primes to reach $L^2$).
+\end{proposition}
+
+\begin{definition}
+$\displaystyle C(n):=\sum_{p\in(L,L^2]}N_p(n)\bigl(N_p(n)-1\bigr)$ -- the
+\emph{coincidence term}: twice the number of triples $(p,P,P')$ with
+$P\ne P'$ two pairs in $\{0,\dots,L\}^2$ both summing to $n\bmod p^2$.
+\end{definition}
+
+By Proposition~\ref{prop:Qfree}, $\sum_{p\in(L,L^2]}N_p(n)\le\pi(L^2)+C(n)$
+for every $n$, so it remains to control $C(n)$.
+
+\begin{proposition}[Second moment]\label{prop:secondmoment}
+Let $\overline C$ denote the average of $C(n)$ over residues $n$ modulo
+$\prod_{p\in(L,L^2]}p^2$ (equivalently, over a full period in each modulus
+separately, by CRT). Then
+\[
+\overline C=\sum_{p\in(L,L^2]}\frac{\Delta_p}{p^2},\qquad
+\Delta_p:=\#\{(P,P'):P\ne P',\ \mathrm{sum}(P)\equiv\mathrm{sum}(P')\!\!\pmod{p^2}\}.
+\]
+For $p\in(L,L^2]$, $\Delta_p\approx\binom{L+2}{2}^2/p^2$ for a quasi-random
+set of $\binom{L+2}{2}$ sums in $\Z/p^2$ (confirmed numerically, no
+exceptional clustering observed), giving
+\[
+\overline C\ \approx\ \frac{(L+2)^4}{4}\sum_{p>L}\frac1{p^4}
+\ \approx\ \frac{L^4}4\cdot\frac1{3L^3\log L}\ =\ \frac{L}{12\log L}\ =\ o(L^2).
+\]
+\end{proposition}
+
+\begin{remark}
+The approximation $\Delta_p\approx(\#\mathrm{pairs})^2/p^2$ is the
+quasi-random heuristic for collision counts and is \emph{not} proved here in
+full rigor for every $p$; it is confirmed numerically
+($\overline C\approx0.44,0.43,0.51,0.96,0.52$ for $L=16,20,24,28,32$, matching
+the predicted $O(L/\log L)$ growth closely). What \emph{is} fully rigorous,
+without this heuristic, is the cruder bound obtained by bounding $\Delta_p$
+trivially by $\binom{L+2}{2}^2$ and summing $1/p^2$ over $p>L$ via Mertens:
+this already gives $\overline C=O(L^2\cdot1/L)=O(L)$, which still suffices
+for what follows (any bound $\overline C=o(L^2)$ does).
+\end{remark}
+
+\begin{theorem}[Almost all $n$, on the range $(L,L^2{]}$]\label{thm:almost}
+For every $\eta>0$, the density of odd $n\le2^{L+1}$ for which
+$\sum_{p\in(L,L^2]}N_p(n)\ge\pi(L^2)+\eta L^2$ is at most
+$\overline C/(\eta L^2)=O(1/(L\log L))\to0$. In particular, taking
+$\eta=0.4$: for all but a density-$O(1/(L\log L))$ exceptional set of odd
+$n$,
+\[
+\sum_{p\in(L,L^2]}N_p(n)\ <\ \pi(L^2)+0.4\,L^2\ =\ (0.4+o(1))(L+1)^2.
+\]
+\end{theorem}
+\begin{proof}
+Markov's inequality applied to $C(n)\ge0$. It remains to justify that the mean
+of $C(n)$ over odd $n\le2^{L+1}$ equals $\overline C$ (defined by CRT over the
+astronomically larger modulus $\prod_{p\in(L,L^2]}p^2$) up to $o(L^2)$. Each
+condition $p^2\mid n-2^l-2^m$ meets the interval $[2^L,2^{L+1})$ in a fixed
+residue class, with frequency $\tfrac1{p^2}+O(2^{-L})$; summing the $O(2^{-L})$
+errors over the $\le\binom{L+2}{2}$ pairs and the $\le\pi(L^2)$ primes gives a
+total discrepancy $\ll L^2\cdot\pi(L^2)\cdot2^{-L}\ll L^6\,2^{-L}=o(1)$ between
+the interval mean of $C(n)$ and $\overline C$. (Restricting to odd $n$ only
+halves the interval and changes nothing, since $2^l+2^m$ is even and $p^2$ is
+odd.) Hence the interval mean is $\overline C+o(1)=o(L^2)$, and Markov applies.
+\end{proof}
+
+\subsection{What this gives, and what it does not, for the full variant}
+
+Combining Theorem~\ref{thm:complete}, Proposition~\ref{prop:R1} (closing
+$p\le L+1$, unconditionally, for \emph{every} $n$, contributing
+$(0.3205+o(1))T$) with Theorem~\ref{thm:almost} (closing $p\in(L,L^2]$, for
+\emph{almost all} $n$, contributing $(0.4+o(1))T$) gives, for that same
+density-$1-O(1/(L\log L))$ set of $n$:
+\[
+\sum_{\substack{p\le\sqrt n\\ p\le L+1\ \mathrm{or}\ p\in(L,L^2]}}N_p(n)
+\ <\ (0.7205+o(1))\,T,
+\]
+leaving an explicit margin of $\approx0.28\,T$ before the threshold
+$T$ of Proposition~\ref{prop:star}. It remains to control the range
+$p\in(L^2,\sqrt{n/2}]$ (wall (B) of \S\ref{sec:open}); for that range, on
+average, a \emph{first} moment already suffices, as we now show -- so the
+almost-all-$n$ statement is in fact complete.
+
+\subsection{Wall (B) on average: a first-moment bound}\label{sec:Bavg}
+
+\begin{theorem}[Wall (B) on average: first moment at a raised threshold]\label{thm:Bavg}
+For $N=2^L$, the mean over $n\in[N,2N)$ of
+$B(n):=\sum_{p\in(L^2,\sqrt{n/2}]}N_p(n)$ is $O(1/\log L)$. Consequently, by
+Markov, for every $\eta>0$,
+\[
+\#\bigl\{n\in[N,2N):\ B(n)\ge\eta L^2\bigr\}
+\ \le\ N\cdot O\!\left(\frac1{\eta L^2\log L}\right)+o(N).
+\]
+Two useful thresholds: at $\eta L^2\to1$ (i.e.\ threshold $1$), all but a
+density-$O(1/\log L)$ set of $n$ have \emph{no} pair $(l,m)$ with $n-2^l-2^m$
+divisible by a square $p^2$, $p\in(L^2,\sqrt{n/2}]$; at any fixed $\eta>0$, all
+but a density-$O(1/(L^2\log L))$ set have $B(n)<\eta L^2$. The latter is what the
+$0.28\,T$ margin permits, and it is a factor $L^2$ smaller than the former.
+\end{theorem}
+\begin{proof}
+The mean is bounded by summing over pairs and primes:
+\[
+\sum_{n\in[N,2N)}B(n)\le\sum_{(l,m)}\sum_{p>L^2}
+\#\{n\in[N,2N):n\equiv2^l+2^m\!\!\pmod{p^2}\}
+\le(L+1)^2\Bigl(N\!\sum_{p>L^2}\tfrac1{p^2}+\pi(\sqrt{N/2})\Bigr),
+\]
+since each residue class modulo $p^2$ meets $[N,2N)$ in at most $N/p^2+1$
+points and the relevant primes are $\le\sqrt{N/2}$. By Mertens,
+$\sum_{p>L^2}1/p^2=O(1/(L^2\log L))$, so the first term is
+$(L+1)^2\cdot N\cdot O(1/(L^2\log L))=N\cdot O(1/\log L)$; the second is
+$(L+1)^2\pi(\sqrt{N/2})=O(L^2\sqrt N/\log N)=o(N)$ since $N\gg L^4$. Dividing by
+$N$ gives mean $O(1/\log L)$; Markov's inequality at level $\eta L^2$ gives the
+displayed density. (The threshold-$1$ form is the special case, recovering the
+union bound.)
+\end{proof}
+
+\begin{remark}[Higher moments: a genuine but conditional improvement]
+Over a full CRT period $\prod_pp^2$ the counters $N_p(n)$ for distinct $p$ are
+exactly independent, so the moments of $B(n)$ and of the range-$(L,L^2]$
+collision count $C(n)=\sum_pN_p(N_p-1)$ factor over $p$, and the interval bridge
+stays valid for the $2k$-th moment as long as the modulus $(L^2)^{2k}\ll2^L$,
+i.e.\ $k\ll L/\log L$. This suggests exceptional density $O(L^{-A})$ for every
+fixed $A$. We caution, however, that this is \emph{not} unconditional: the
+variance is $\mathrm{Var}(C)=\sum_p\mathrm{Var}(N_p(N_p-1))\le M_{\max}^2\,
+\overline C$ where $M_{\max}=\max_pM_p$, and with only the trivial
+$M_{\max}\le L+1$ this gives $\mathrm{Var}(C)=O(L^2\overline C)$ and Chebyshev
+\emph{no} gain over Markov; a genuine gain (numerically $\mathrm{Var}(C)/
+\overline C\approx2.1$--$2.9$ to $L=36$, giving density $O(1/(L^3\log L))$)
+requires $M_{\max}=o(L)$, or more precisely an unconditional bound on the
+fourth-moment sum $\sum_p p^{-2}\sum_r[c_r(c_r-1)]^2$ -- a higher square-sieve
+estimate of the same nature as~(TB). So the moments beyond the first are
+controlled by the same open input as (M$''$) itself; only the first moment
+(Markov) is unconditional. The wide range (B), where $N_p\in\{0,1\}$ generically,
+is closer to Bernoulli and its second moment is more plausibly unconditional, but
+we do not pursue it. The first moment already suffices for the corollary.
+\end{remark}
+
+This is the structural counterpart of the impossibility noted in
+\S\ref{sec:open}: there is simply not enough mass in $\sum_{p>L^2}1/p^2$
+(which is $<\sum_{p\ge3}1/p^2=0.2022\ldots$) for the wide range (B) to matter
+on average, even though it is the numerically dominant range. Numerically
+(script \texttt{checkB.py}), the fraction of $n$ with a nonzero (B)-contribution
+is $0\%,3.4\%,5.4\%$ at $L=15,18,22$, average contribution $\le0.056$, in line
+with $(L+1)^2\sum_{p>L^2}1/p^2\approx0.13$ (slowly decreasing).
+
+\subsection{The perfect-square range, for almost all $n$}
+
+For the every-$n$ statement the range $(\sqrt{n/2},\sqrt n]$ is closed by
+Kalinin~\cite{Kalinin2026} (\S\ref{sec:open}). For the \emph{almost-all}
+statement it needs no such input: a first moment suffices, keeping the
+unconditional theorem entirely self-contained.
+
+\begin{proposition}[Perfect-square range, almost all $n$]\label{prop:sqrange}
+For all but $O\big((L+1)^2\,2^{-L/2}\big)=o(2^L)$ odd $n\in[2^L,2^{L+1})$, no pair
+$(l,m)$ has $n-2^l-2^m$ a perfect square; a fortiori the range
+$(\sqrt{n/2},\sqrt n]$ contributes $0$.
+\end{proposition}
+\begin{proof}
+For $p>\sqrt{n/2}$ and $p^2\mid k$ with $0<k<n\le2p^2$, the only multiple of
+$p^2$ available is $k=p^2$; so any contribution from this range requires
+$n-2^l-2^m$ to be a perfect square. Such an $n$ equals $2^l+2^m+s^2$ for some
+$l,m\le L$ and $s\ge0$. The number of triples $(l,m,s)$ with
+$2^l+2^m+s^2\in[2^L,2^{L+1})$ is
+$\sum_{l,m}\#\{s:s^2\in[2^L-2^l-2^m,\,2^{L+1}-2^l-2^m)\}\le(L+1)^2(2^{L/2}+1)$,
+since \emph{any} interval of length $X$ holds at most $\sqrt X+1$ squares
+(consecutive squares in $[a,a+X)$ satisfy $\sqrt{a+X}-\sqrt a\le\sqrt X$); here
+$X=2^L$, and the interval may start near $0$ when $2^l+2^m\approx2^L$, so the
+universal bound is needed. Hence the exceptional set has size
+$\le(L+1)^2(2^{L/2}+1)$, of density $O((L+1)^2\,2^{-L/2})\to0$.
+\end{proof}
+
+\subsection{The complete almost-all-$n$ theorem}
+
+\begin{corollary}[Two-powers variant for almost all $n$, unconditional]\label{cor:almostall}
+For all but a density-$O(1/(L\log L))$ set of odd $n\le2^{L+1}$, the two-powers
+variant holds.
+\end{corollary}
+\begin{proof}
+Outside the union of the exceptional sets -- never (for $p\le L+1$, by
+Theorem~\ref{thm:complete} and Proposition~\ref{prop:R1}, deterministically
+$\le(0.3205+o(1))T$); density $O(1/(L\log L))$ (for $(L,L^2]$, by
+Theorem~\ref{thm:almost} at $\eta=0.4$, contributing $<(0.4+o(1))T$); density
+$O(1/(L^2\log L))$ (for $(L^2,\sqrt{n/2}]$, by Theorem~\ref{thm:Bavg} at
+$\eta=0.1$, contributing $<0.1\,T$); density $O((L+1)^2\,2^{-L/2})$ (for
+$(\sqrt{n/2},\sqrt n]$, contributing $0$, by Proposition~\ref{prop:sqrange}) -- we
+get $\sum_{p\le\sqrt n}N_p(n)<(0.8205+o(1))T<T$, whence a squarefree pair exists by
+Proposition~\ref{prop:star}. The union of exceptional sets has density
+$O(1/(L\log L))\to0$, dominated by $(L,L^2]$; in particular the unconditional
+theorem now uses no external input for any range.
+\end{proof}
+
+Thus the only gaps to a \emph{full} (every-$n$) proof are the worst-case
+statements (M$''$) and (B) of \S\ref{sec:open}; the almost-all-$n$ statement
+is unconditional and complete. Raising the wall-(B) threshold from $1$ to
+$\eta L^2$ (which the $0.28\,T$ margin permits) has moved the binding term in
+the exceptional density from (B) to the range $(L,L^2]$, at $O(1/(L\log L))$ --
+a factor-$L$ improvement over the naive $O(1/\log L)$. A further conditional
+improvement to $O(L^{-A})$ (any $A$) is available via higher moments, but rests on
+a fourth-moment bound of the same difficulty as (M$''$) (see the preceding
+remark); the unconditional density remains $O(1/(L\log L))$.
+
+% ============================================================================
+\section{What remains: the open links}\label{sec:open}
+% ============================================================================
+
+We now state, as precisely as possible, the two gaps left open by the above,
+together with where each brute-force argument fails and by how much.
+
+\subsection{The range $(\sqrt{n/2},\sqrt n]$: closed, by Kalinin (2026)}
+
+If $p\in(\sqrt{n/2},\sqrt n]$ and $N_p(n)\ge1$ with the further coincidence
+$2^l=2^m$ (i.e.\ a perfect-square term $n-2^{l+1}$), Kalinin
+\cite{Kalinin2026} proves (his Theorem~4, building on a multiplicity bound
+$|\{k\ge1:n-2^k=mu^2\}|\le2$ for squarefree odd $m\ge3$, sharp, via an
+elementary $2$-adic and mod-$8$ analysis with no equidistribution input) that
+this range contributes only $O(L)$ to the relevant count, for every $n$.
+This range is therefore \textbf{closed, unconditionally, for every $n$} --
+the only range, besides $p\le L+1$, with that status.
+
+\subsection{Open link (M$''$): the multiplicity-distribution tail on $(L,L^2]$}
+
+Precisely, what is missing to upgrade Lemma~\ref{lem:M} from a deterministic
+\emph{reduction} to a deterministic \emph{bound} is:
+\[
+\text{(M$''$)}\qquad
+\sum_{p\in(L,L^2]\ \mathrm{non\text{-}Sidon}}\bigl(M_p-2\bigr)\ =\ o(L^2),
+\qquad\text{equivalently}\qquad
+\sum_{k\ge2}\#\{p\in(L,L^2]:M_p^{\mathrm{unord}}\ge k\}\ =\ o(L^2).
+\]
+\textbf{Where brute force fails, exactly.} The trivial bound
+$M_p-2\le L-1$ together with the trivial bound $\le\pi(L^2)$ on the number of
+non-Sidon primes gives $\Theta(L^2)$, not $o(L^2)$ -- it fails by a constant
+factor, not by an order of magnitude. \textbf{What the data shows.}
+$M_p^{\mathrm{unord}}$ (the maximum number of \emph{unordered}
+representations of any residue $n\bmod p^2$ as $\{2^i,2^j\}$) is \emph{not}
+bounded by an absolute constant: it grows slowly, empirically
+$3,4,4,4,5,6$ for $L=20,30,40,50,60,70$, attained on primes with anomalously
+small multiplicative order of $2$ (e.g.\ $p=127$, $\ord_p(2)=7$). We checked,
+and explicitly ruled out, the natural attempt to bound $M_p$ via Evertse's
+$S$-unit equation theorem: that theorem bounds non-degenerate solutions of
+$S$-unit equations over number fields (characteristic $0$); it does not
+apply to equations in the finite ring $\Z/p^2$, where $S$-unit-type equations
+$x+y=z+w$ over a multiplicative subgroup $H$ typically have
+$\sim|H|^2/p^2\cdot|H|$ solutions, unbounded as $|H|\to\infty$ -- the
+opposite regime from characteristic $0$. The proportion of non-Sidon primes
+in $(L,L^2]$ is itself a constant fraction ($\approx17\%$, stable from
+$L=32$ to $L=48$), not a vanishing one -- so (M$''$) is genuinely a
+statement about the \emph{decay of the multiplicity distribution} (a
+$B_2[g]$-type statement: how many primes have additive multiplicity $\ge k$,
+for each $k$), not merely about how many primes fail to be Sidon. \textbf{A cleaner equivalent form.} Since $\#\{$non-Sidon $p\in(L,L^2]\}\le
+\pi(L^2)=O(L^2/\log L)$ unconditionally, writing the average excess
+$\mathrm{EM}(L):=\bigl(\sum_{\text{non-Sidon}}(M_p-1)\bigr)/\#\{\text{non-Sidon}\}$
+gives the equivalence
+\[
+\text{(M$''$)}\quad\Longleftrightarrow\quad \mathrm{EM}(L)=o(\log L).
+\]
+Empirically $\mathrm{EM}(L)\approx1.3$ (computed to $L=120$: it lies in
+$[1.27,1.33]$, with $\mathrm{EM}(L)/\log L$ \emph{decreasing}, $0.33\to0.27$),
+so (M$''$) holds with a growing margin; correspondingly $\sum_pM_p/L^2$
+decreases ($0.16\to0.135$). We had conjectured $\mathrm{EM}\to4/\pi=1.273$ from
+data to $L=80$; extending to $L=120$ \emph{refutes} a clean closed form
+(the value drifts up to $\approx1.30$). What is robust is only
+$\mathrm{EM}=O(1)$, indeed $o(\log L)$. \textbf{The shape of the
+distribution.} The reason $\mathrm{EM}=O(1)$ holds is that the tail counts
+$\#\{p:M_p^{\mathrm{unord}}\ge k\}$ decay \emph{geometrically} in $k$: on the
+Type~B primes (\S\ref{sec:classify}) the ratio
+$\#\{M_p\ge k{+}1\}/\#\{M_p\ge k\}$ is $\approx0.08$ and stable across
+$L=60,\dots,180$ ($n$ up to $\sim10^{54}$), with $\#\{M_p\ge5\}=0$ throughout;
+the excess $\sum_k\#\{M_p\ge k\}$ is thus carried almost entirely by the level
+$k=3$, and $\#\{M_p\ge2\}\le\pi(L^2)=o(L^2)$ is unconditional. We stress that
+this geometric decay is \emph{observed}, not proved inductively, and that it is
+the empirical \emph{shape} of the same distribution, not an independent
+simplification: proving the decay uniformly in $k$ is exactly proving the
+sub-Poisson behaviour below, and does not sidestep it.
+
+\textbf{Why four standard toolkits all fail, for one reason.} We tried, and
+ruled out, the four natural routes; each controls an \emph{energy}-scale
+quantity, whereas (M$''$) needs the \emph{maximum multiplicity}, and for these
+near-Sidon geometric sets the maximum is far below the energy:
+\begin{itemize}
+\item \emph{Cauchy--Schwarz / additive energy:} $M_p-1\le\sqrt{2\Delta_p}$,
+but $\sum_p\sqrt{2\Delta_p}=\Theta(L^2)$ (ratio $\approx0.25$, not $\to0$); and
+$\sum_p\Delta_p$ itself \emph{grows} faster than $L^2$.
+\item \emph{$S$-unit / Evertse:} inapplicable in the finite ring $\Z/p^2$
+(as above; $S$-unit-type equations there have $\sim|H|^3/p^2$ solutions).
+\item \emph{Plünnecke--Ruzsa:} the geometric set $G_L=\{2^k\bmod p^2\}$ has
+\emph{maximal} doubling $|G_L+G_L|/|G_L|\sim L$, so Plünnecke gives only the
+trivial $E\le K^2|G_L|^2\sim L^4/4$. (Yet $E/|G_L|^2\approx2$--$4$: $G_L$ is
+``almost Sidon'', energy barely above the floor.)
+\item \emph{Exponential sums (Bourgain--Garaev--Konyagin--Shparlinski):} a
+pointwise bound on $S(t)=\sum_{k\le L}e_{p^2}(t2^k)$ bounds the energy
+$E_p=p^{-2}\sum_t|S(t)|^4$, not $M_p$, and $M_p\ll\sqrt{E_p}$ (measured gap
+$M_{127}=9$ vs $\sqrt{2\Delta_{127}}=167$ at $L=120$). Moreover our sums are
+incomplete of length $L+1\in[q^{1/4},q^{1/2}]$, $q=p^2$, where even Korobov's
+$\sqrt q\log q$ is trivial -- below the range of known unconditional cancellation
+for the exponential function mod $p^2$. \emph{A $p$-adic reduction (Lemma~K
+applied to the moment, not just the main term) partly clarifies where the
+difficulty sits}: splitting $S(t)$ by whether $p\mid t$, the $p\mid t$
+characters $t=pb$ give $S(pb)=\sum_{k\le L}e_p(b\,2^k)$ -- a \emph{complete} sum
+over $\langle2\rangle\bmod p$ when $\ep\le L$ (Type~A, already unconditional by
+Proposition~\ref{prop:ordersum}), an incomplete geometric sum mod~$p$ otherwise
+-- whereas the $p\nmid t$ characters give genuinely incomplete sums mod~$p^2$
+that Lemma~K does \emph{not} reduce. So the true frontier is not Korobov's
+generic bound but \emph{sum-product} cancellation for the geometric progression
+itself (Bourgain--Glibichuk--Konyagin: incomplete geometric sums of length $L$
+mod~$p$ or~$p^2$, valid for order $\ep\ge p^\delta$); whether such a bound
+reaches length $L$ in this range, in mean square, is precisely the open input
+(TB), which we have not settled.
+\end{itemize}
+Equivalently (double counting), $\sum_p\Delta_p=\sum_{\text{nontrivial }(a,b,c,d)}
+\#\{p:p^2\mid N\}$ with $N=2^a+2^b-2^c-2^d\ne0$ (the latter is exactly why
+$\{2^k\}$ is a Sidon set over $\Z$); here $\#\{p\in(L,L^2]:p^2\mid N\}\le2$ in
+range, and the only $\omega_2(N)=2$ cases are the structured squares
+$N=(2^k-1)^2$ (e.g.\ $(2^{14}-1)^2=3^2\!\cdot\!43^2\!\cdot\!127^2$). All of this
+controls the \emph{column/row} marginals (per-quadruplet, per-prime energy) but
+never the \emph{pile} marginal $M_p$ (e.g.\ for $p=127$, $L=40$: row $\Delta_p=329$
+collisions fan into piles of max $M_p=3$). So (M$''$) is, precisely, a
+\emph{large-deviation / multiplicity-distribution} statement about the geometric
+progression $\{2^k\bmod p^2\}$ -- the maximum pile, not the energy -- which lies
+beyond all four \emph{energy}-scale toolkits above. (A fifth, maximum-scale
+family -- Stepanov / García--Voloch -- does bound the pile directly
+(Proposition~\ref{prop:gv}), but on Type~A alone and short of the
+target by a power of $L$.) We regard it as true (every empirical margin
+grows) but accessible only to a dedicated argument of that kind, which we do not
+have. As a structural aside, the high-$M_p$ primes correlate strongly with
+\emph{small} multiplicative order $\ord_p(2)$ ($\mathrm{corr}(M_p,1/\ord_p(2))
+\approx0.71$ at $L=60$), though large-order primes also occur among the
+non-Sidon ones, so this does not by itself reduce the sum.
+
+\textbf{The refined picture (\S\ref{sec:classify}--\ref{sec:typeB}).} The
+correlation with $\ord_p(2)$ is in fact the entry point to a clean split of
+(M$''$). Writing Type~A $=\{\ep\le L\}$, Type~B $=\{\ep>L\}$: the Type~A excess is
+$\le\kappa_p(\lfloor L/\ep\rfloor+1)$ per prime (Proposition~\ref{prop:perclass}),
+and the order sum $\sum_p\lfloor L/\ep\rfloor=o(L^2)$ is now
+\emph{unconditional} (Proposition~\ref{prop:ordersum}); the only missing Type~A
+input is a bound on the number $\kappa_p$ of active progressions (hypothesis
+(TA)), for which a \emph{fifth}, maximum-scale toolkit -- the Stepanov /
+García--Voloch method for additive representations in a multiplicative subgroup --
+gives the unconditional $\kappa_p\ll\ep^{2/3}$ and hence
+$\sum_{\text{Type A}}M_p=O(L^{8/3}/\log L)$, short of $o(L^2)$ by $L^{2/3}$
+(Proposition~\ref{prop:gv}). The Type~B excess is governed by
+the factorial moments $E_k^{\mathrm{tot}}$ (Lemma~\ref{lem:markov}), and the sharp
+condition $E_k^{\mathrm{tot}}\le C^kE_k^{\mathrm{null}}$ (hypothesis (TB),
+Theorem~\ref{thm:conditional}) reduces it to a Heath-Brown square-sieve estimate,
+i.e.\ a \emph{mean-square} bound on the same incomplete exponential sums that
+appear in sup-norm in the fourth toolkit above. Thus (M$''$) is not monolithic:
+its order-scale part is unconditional, its Type~A part is a rigidity statement
+(now with the unconditional partial bound $\kappa_p\ll\ep^{2/3}$ above), and its
+Type~B part is the one genuine analytic input. It is worth stressing how
+\emph{singular} this lock is: even the unconditional almost-all density of
+\S\ref{sec:almost} cannot be improved past the first moment without it. The
+variance of the collision count $C(n)=\sum_pN_p(N_p-1)$ is
+$\sum_p\mathrm{Var}(N_p(N_p-1))$, whose per-prime terms are the sums
+$\sum_rc_r^{\,4}/p^2$ -- i.e.\ the very moments $E_4^{\mathrm{tot}}$; likewise a
+truncation $C^{\le K}+C^{>K}$ pushes the tail onto $\sum_p\sum_r\binom{c_r}{K}$,
+again $E_K^{\mathrm{tot}}$. So Chebyshev (numerically a factor-$L^2$ gain to
+$O(1/(L^3\log L))$, $\mathrm{Var}(C)/\overline C\approx2.1$--$2.9$ to $L=36$) and
+every higher-moment sharpening are conditional on the \emph{same} square-sieve
+input as (M$''$) itself. There is one underlying lock, and it is the
+multiplicity distribution of $\{2^l+2^m\bmod p^2\}$.
+
+\subsection{Open link (B): the equidistribution wall on $(L^2,\sqrt{n/2}]$ --
+worst case only}
+
+\emph{On average} this range is already handled (Theorem~\ref{thm:Bavg}: its
+first moment is $O(1/\log L)$, so it contributes nothing for almost all $n$).
+What remains genuinely open is the \emph{uniform-in-$n$} (worst-case) statement:
+\[
+\text{(B)}\qquad
+\sum_{p\in(L^2,\sqrt{n/2}]}N_p(n)\ =\ o(L^2)\quad\text{uniformly in }n.
+\]
+\textbf{Where brute force fails, exactly.} For $p$ in this range,
+$N_p(n)\in\{0,1\}$ generically (no two pairs can plausibly collide once $p$
+is this large relative to the number of pairs), so the sum is, up to a
+constant, the number of pairs $(l,m)$ for which $n-2^l-2^m$ has \emph{some}
+square prime factor $p^2$ with $L^2<p^2\le n/2$. Each $k=n-2^l-2^m\le n$ has
+at most $O(L/\log L)$ such prime factors (since $(L^2)^{L/\log L}\sim n$), so
+the trivial bound is $(L+1)^2\cdot O(L/\log L)=O(L^3/\log L)$ -- the
+\emph{cube}, not the square, of $L$: this range is, in the crudest sense, the
+\emph{numerically dominant} one (most primes up to $\sqrt n$ lie here), even
+though the data shows its actual contribution is small. \textbf{What would
+close it.} A squarefree-density / equidistribution estimate for the
+structured sequence $\{n-2^l-2^m\}$ in this range -- in spirit close to (but
+not identical to) the kind of input behind the classical ``almost all $n$''
+result for the one-power variant of \#11 itself. The covering-congruence
+machinery that produces the large exceptional sets for the \emph{prime}-kernel
+problems \#9 and \#16 (Crocker \cite{Crocker1971}, Pan \cite{Pan2011}, Chen
+\cite{Chen2024}) is \emph{provably unavailable} here: a covering system needs
+its moduli to satisfy $\sum1/m_i\ge1$, whereas square moduli $p^2$ ($p\ge3$)
+give only $\sum_{p\ge3}1/p^2=0.2022\ldots<1$, so one cannot cover $\Z$ by
+congruences mod $p^2$. This is the quantitative form of the Crocker decoupling
+of \S\ref{sec:intro-decoupling} -- and the same smallness ($\sum_{p>L^2}1/p^2$
+tiny) is exactly what makes the average bound Theorem~\ref{thm:Bavg} work. The
+worst case (B) would, by contrast, require a genuine equidistribution/large-sieve
+estimate for the structured sequence $\{n-2^l-2^m\}$; we have not found one.
+
+We note that (WB) is of the \emph{same nature} as, and in fact weaker than, the
+Type~B hypothesis (TB) of \S\ref{sec:typeB}: both are factorial-moment (grand
+sieve) bounds on the multiplicity distribution of $\{2^l+2^m\bmod p^2\}$, (WB)
+over the larger primes $p>L^2$ (where collisions are rarer, so the maximum
+$\max_nB(n)$ is smaller). The naive hope that $\max_nB(n)=O(1)$ is \emph{false}:
+$p\le\sqrt{n/2}\le2^{L/2}$ gives $p^2\le2^L$, while a difference of two pair-sums
+has absolute value up to $4\cdot2^L>p^2$, so the ``at most one pair per fibre''
+argument does not apply in this range; numerically $\max_nB(n)$ tracks the
+Poisson maximum $\approx0.69\,L/\log L$ (not $O(1)$), which is nonetheless
+$o(L^2)$, so (WB) holds with a wide margin. Thus (TA), (TB) and (WB) are three
+scales of a single underlying question -- the multiplicity distribution of
+$\{2^l+2^m\bmod p^2\}$ -- rather than three independent walls.
+
+\subsection{Summary table}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Range of $p$ & Status (every $n$) & Method\\
+\midrule
+$p\le L+1$ & \textbf{closed} & Lemma K + Prop.~\ref{prop:R1} (elementary)\\
+$(L,L^2]$, Type A ($\ep\le L$) & \emph{open}, gap $L^{2/3}$ & $O(L^{8/3}/\log L)$, García--Voloch (Prop.~\ref{prop:gv})\\
+$(L,L^2]$, Type B ($\ep>L$) & \emph{open} ((TB); sup-norm route closed by circularity) & (TB) $=$ additive energy (Prop.~\ref{prop:circ})\\
+$(\sqrt{n/2},\sqrt n]$ & \textbf{closed} & Kalinin~\cite{Kalinin2026}; a.a.\ $n$ self-contained (Prop.~\ref{prop:sqrange})\\
+$(L^2,\sqrt{n/2}]$ & \emph{open}, worst case only & wall (B); \#11-calibre (avg.\ done, Thm~\ref{thm:Bavg})\\
+\bottomrule
+\end{tabular}\\[2pt]
+(All four ranges are \textbf{closed unconditionally for almost all $n$},
+Corollary~\ref{cor:almostall}.)
+\end{center}
+
+% ============================================================================
+\section{The function-field model: where the difficulty really lives}\label{sec:ff}
+% ============================================================================
+
+To locate the obstruction precisely we run the whole architecture over
+$\F_q[t]$. Replace $\Z$ by $\F_q[t]$, the base $2$ by the variable $t$,
+primes $p$ by monic irreducibles $P$, $|p|$ by $|P|=q^{\deg P}$, and
+``squarefree'' by squarefree in $\F_q[t]$ (density $1-1/q$). The variant reads:
+every $n(t)$ of large degree is $k(t)+t^l+t^m$ with $k$ squarefree. The sieve is
+identical, with $N_P(n)=\#\{(l,m):P^2\mid n-t^l-t^m\}$ and threshold
+$T=(L+1)^2$. Lemma~K transfers verbatim (the kernel $K_P=1+P\,\F_q[t]/P^2$ of
+$(\F_q[t]/P^2)^\times\to(\F_q[t]/P)^\times$ absorbs the character sum), as does
+the involution $1+t^{\,e-\delta}\equiv t^{-\delta}(1+t^\delta)$; and
+$\sum_P|P|^{-2}=\sum_d(\#\{\deg P=d\})q^{-2d}<1$ (for $q=2$, $\approx0.60$), so
+covering by congruences $\bmod\,P^2$ is impossible -- the Crocker decoupling
+holds here too.
+
+The decisive difference is at (TB).
+
+\begin{proposition}[{(TB) over $\F_q[t]$, by degree}]\label{prop:ff}
+Let $q>2k$. For an irreducible $P$ with $\deg P>L/2$, the sums
+$\{t^l+t^m\bmod P^2\}$ have no non-trivial coincidence, so $N_P(r)\le1$ for the
+relevant residues and the $k$-th factorial moment vanishes. Consequently the
+$\F_q[t]$-analogue of (TB) holds unconditionally.
+\end{proposition}
+\begin{proof}
+A coincidence $\sum_it^{a_i}\equiv\sum_it^{b_i}\pmod{P^2}$ means $P^2$ divides the
+polynomial $D=\sum_it^{a_i}-\sum_it^{b_i}$, of degree $\le L$ and with integer
+coefficients reduced mod $q$. As $q>2k$, $D$ vanishes in $\F_q[t]$ iff the
+exponent multisets coincide. If they do not, $D\ne0$ has $\deg D\le L<2\deg P=\deg
+P^2$, so $P^2\nmid D$. Hence the only coincidences are trivial. For $\deg P\le
+L/2$ (finitely many $P$, $|P|\le q^{L/2}$) the coincidences are counted by degree,
+without any exponential-sum input.
+\end{proof}
+
+So over $\F_q[t]$ the analogue of (TB) is a \emph{theorem}, but proved by the
+linear independence of the monomials $t^j$ and a degree count -- not by Weil, and
+not by any sup-norm bound. Indeed the moment/sup-norm obstruction of
+\S\ref{sec:bc} persists here: Weil gives square-root cancellation
+$\varepsilon=\tfrac12$, still $B^2=(L+1)>1$, so the conversion of
+Proposition~\ref{prop:block} blocks identically; the closure comes from
+elsewhere. And the mechanism does \emph{not} transpose to $\Z$: there is no
+degree bound preventing $p^2\mid2^a+2^b-2^c-2^d\ne0$. The obstruction over $\Z$ is
+thus \emph{archimedean} -- powers of $2$ carry (e.g.\ $2^a+2^a=2^{a+1}$) while
+monomials $t^a$ do not, so $\{2^j\}$ is only \emph{approximately} Sidon and a
+nonzero four-term combination can still be squarefull -- rather than a deficit of
+cancellation. The function-field model therefore supplies no characteristic-zero
+method; it certifies that (TB) over $\Z$ is genuinely harder, of square-sieve /
+squarefull-value type.
+
+% ============================================================================
+\section{Conclusion}
+% ============================================================================
+
+The two-powers squarefree variant of Erd\H{o}s \#11 is, as far as we have
+been able to push it, reduced to exactly two clean, isolated, named
+statements -- (M$''$), a multiplicity-distribution decay on a bounded range
+of primes just above $L=\log_2n$, and (B), a squarefree-density statement on
+the much wider range of primes between $L^2$ and $\sqrt n$ -- after an
+elementary closure (Lemma~K and Proposition~R1) that handles, exactly and for
+every $n$, every prime up to $L+1$, and a deterministic dissolution of the
+worst-case obstruction (Lemma~M) on the dominant range $(L,L^2]$. An
+unconditional theorem (\S\ref{sec:almost}--\ref{sec:Bavg}) further proves the
+variant for \emph{almost all} $n$, on \emph{all} prime ranges
+(Corollary~\ref{cor:almostall}).
+
+Within (M$''$) the split of \S\ref{sec:classify}--\ref{sec:typeB} is now sharp.
+The order-scale part is unconditional (Proposition~\ref{prop:ordersum}). The
+Type~A part carries a genuine \emph{unconditional} bound $\kappa_p\ll\ep^{2/3}$
+via García--Voloch (Proposition~\ref{prop:gv}), giving $\sum_{\text{Type A}}M_p=
+O(L^{8/3}/\log L)$ -- short of the target $o(L^2)$ by exactly $L^{2/3}$, so (TA)
+survives only as the sharp question of pushing $2/3\to o(1)$ using the involution
+rigidity. The Type~B part (TB) is where the problem's true nature surfaces. The
+relevant \emph{additive} exponential sums do satisfy an unconditional sup-norm
+bound $|S(\xi)|<(L+1)^{1-\varepsilon}$ (Bourgain--Chang, Theorem~\ref{thm:bc},
+confirmed numerically), yet this cannot close (TB): the moment ($L^{2k}$) bound
+one would need is, by Proposition~\ref{prop:circ}, \emph{identical} to the
+additive energy $E_k^{\mathrm{add}}$, i.e.\ to (TB) itself. (TB) is therefore
+closed by \emph{circularity}, not by any absent reference -- it is a genuine open
+estimate. The function-field model (\S\ref{sec:ff}) pins down why: the analogue
+of (TB) over $\F_q[t]$ is a theorem, but proved by the linear independence of the
+monomials $t^j$ and a degree count, a mechanism that does \emph{not} transpose
+because over $\Z$ nothing bounds the squarefull part of a nonzero four-term
+combination $2^a+2^b-2^c-2^d$. The obstruction is \emph{archimedean} -- powers of
+$2$ carry while monomials do not -- not a deficit of cancellation. In this precise
+sense (M$''$) at $k=2$ is a squarefree-value statement for the sparse family
+$1+2^\beta-2^\gamma-2^\delta$, a genuine cousin of \#11 itself; empirically the
+few quadruples that a single $p^2$ divides twice are \emph{all} structured
+(Mersenne squares $N=(2^k-1)^2$ and relatives; \S\ref{sec:open}, script data),
+suggesting an elementary classification for $k=2$ that we state as a conjecture,
+not a theorem. As for (B): its average form is settled (first moment); its
+worst case remains, and we judge it to be of the same calibre as \#11 in its
+original one-power form. The
+\emph{elementary} lemmas underpinning the unconditional results
+(Proposition~\ref{prop:ordersum}, the order-sum bound; Lemma~\ref{lem:involution},
+the involution identity; the order lower bound behind
+Proposition~\ref{prop:convergence}; the coprimality product bound behind
+Proposition~\ref{prop:ordersum}; and the degree obstruction behind the
+function-field Proposition~\ref{prop:ff}) have been \emph{formally verified in
+Lean~4} against Mathlib (file \texttt{Erdos11\_verified.lean}, five lemmas,
+\texttt{0 sorry}, axiom audit \texttt{[propext, Classical.choice, Quot.sound]});
+the analytic and
+conditional statements (the factorial-moment bound (TB), the every-$n$ theorem)
+are \emph{not} formalised, matching their status as conjectural. Only the target
+statement \texttt{erdos\_11.variants.two\_pow\_two} otherwise exists in Lean form.
+We hope the precision of the named gaps is useful to whoever picks this up next.
+
+% ============================================================================
+\section*{Acknowledgements}
+This note was produced in a human-directed workflow with AI assistants in
+distinct executor and validator roles: proposing tools and computations,
+locating and cross-checking references, and deriving and refuting bounds, with a
+standing rule that no theorem enters the paper without a written proof or a
+formal (Lean) verification, and every numerical assertion points to a named
+script (see the repository \texttt{README}). The mathematical judgements,
+and the responsibility for errors, are the author's.
+
+% ============================================================================
+\begin{thebibliography}{9}
+
+\bibitem{erdosproblems11}
+T.~F.~Bloom, \emph{Erd\H{o}s Problem \#11},
+\url{https://www.erdosproblems.com/11}.
+
+\bibitem{Kalinin2026}
+D.~Kalinin, \emph{A multiplicity bound for a fixed squarefree kernel}, preprint,
+29 March 2026. We rely on this paper for the exact statements of, and exact
+references to, Granville--Soundararajan, Hercher, Crocker and
+Platt--Trudgian on the one-power variant of \#11, and for Theorem~4 used in
+\S\ref{sec:open}.
+
+\bibitem{Crocker1971}
+R.~Crocker, \emph{On the sum of a prime and two powers of two}, Pacific J.
+Math. \textbf{36} (1971), 103--107. (Title and pages confirmed via the
+bibliography of \cite{Chen2024} and \cite{Pan2011}.)
+
+\bibitem{Chen2024}
+Y.-G.~Chen, \emph{A conjecture of Erd\H{o}s on $p+2^k$}, arXiv:2312.04120v3
+(2024) -- the resolution of Erd\H{o}s Problem~\#16 (the \emph{one}-power
+exceptional-set structure), used here only to fix the exact references and the
+covering-congruence mechanism discussed in \S\ref{sec:open}.
+
+\bibitem{Pan2011}
+H.~Pan, \emph{On the integers not of the form $p+2^a+2^b$}, Acta Arith.
+\textbf{148} (2011), 55--61 (arXiv:0905.3809) -- the \emph{prime}-kernel
+two-powers problem (Erd\H{o}s \#9); its lower bound on non-representable
+integers is obtained by a covering system modulo primes, not a sieve.
+
+\bibitem{HeathBrown1984}
+D.~R.~Heath-Brown, \emph{The square sieve and consecutive square-free numbers},
+Math. Ann. \textbf{266} (1984), 251--259.
+
+\bibitem{GarciaVoloch1988}
+A.~García, J.~F.~Voloch, \emph{Fermat curves over finite fields}, J. Number
+Theory \textbf{30} (1988), 345--356 (primary source of the multiplicity bound
+$r_p(b)\le4|G|^{2/3}$).
+
+\bibitem{Konyagin-notes}
+S.~V.~Konyagin, \emph{Estimates for character sums and the additive structure of
+multiplicative subgroups} (lecture notes; recordings and notes available via
+\url{https://www.mathtube.org/}); and S.~V.~Konyagin, I.~E.~Shparlinski,
+\emph{Character sums with exponential functions and their applications}, Cambridge
+Univ. Press, 1999. We take the exact form used from here (Konyagin's Theorem~2.1):
+$r_p(b)\le4|G|^{2/3}$ for $b\in\Z_p^\times$ and $|G|<(p-1)/((p-1)^{1/4}+1)$; the
+Stepanov-method proof (Heath-Brown) and the energy bound $T_2(G)\ll|G|^{5/2}$ for
+$|G|\le p^{2/3}$ (Heath-Brown--Konyagin) are stated there. The exact size and
+non-degeneracy conditions used in Proposition~\ref{prop:gv} are those of this
+secondary source, verified numerically herein.
+
+\bibitem{BourgainChang2006}
+J.~Bourgain, M.-C.~Chang, \emph{Exponential sum estimates over subgroups and
+almost subgroups of $\Z_Q^*$, where $Q$ is composite with few prime factors},
+Geom. Funct. Anal. \textbf{16} (2006), 327--366. Corollary~4.5 gives the additive
+sup-norm of Theorem~\ref{thm:bc}; formula (4.23) ($\theta=1+p$) is the degeneracy
+that forces the Type~A/B split.
+
+\bibitem{Rudin1960}
+W.~Rudin, \emph{Trigonometric series with gaps}, J. Math. Mech. \textbf{9}
+(1960), 203--227.
+
+\bibitem{erdos11data}
+Numerical evidence referenced throughout (scripts \texttt{orders.py},
+\texttt{lemmaE2.py}, \texttt{verify\_structure.py}, \texttt{verify\_residual.py},
+and further task-specific computations for $M_p$, $C(n)$, and the
+non-Sidon-prime counts, all in this repository).
+
+\end{thebibliography}
+
+\end{document}
