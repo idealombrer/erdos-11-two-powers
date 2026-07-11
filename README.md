@@ -52,14 +52,14 @@ Each script prints the figures quoted in the paper. Run from `scripts/`.
 | energy $E_2$, $E_k^{\text{tot}}/E_k^{\text{null}}$ sub-multinomial table | `lemmaE2.py`, `heath_brown_e2.py` |
 | fibre / per-class structure, $\kappa_p$ | `verify_structure.py`, `kappa_structure.py` |
 | residual / Lemma M | `verify_residual.py` |
-| García–Voloch $r_p(b)\le 4e_p^{2/3}$ ($b\ne0$), degenerate $b=0$ | `chantierD_stepanov.py` |
-| exceptional band $p\in(L,L^{4/3})$ absorbed | `chantierG_band.py` |
-| Bourgain–Chang sup-norm $\max|S(\xi)|/(L+1)=0.37,0.31,0.24$ | `chantierH_supnorm.py` |
-| $\mathrm{EM}(L)\approx1.3$, geometric decay of $\#\{M_p\ge k\}$ | `geometric_decay.py`, `chantierA_moments.py` |
-| $k=2$ inventory: $p^2\mid N$ doubles are all Mersenne squares | `chantierJ_k2.py` |
-| wall (B) first moment, exceptional fraction | `checkB.py` |
+| García–Voloch $r_p(b)\le 4e_p^{2/3}$ ($b\ne0$), degenerate $b=0$ | `typeA_garcia_voloch_check.py` |
+| exceptional band $p\in(L,L^{4/3})$ absorbed | `typeA_exceptional_band.py` |
+| Bourgain–Chang sup-norm $\max|S(\xi)|/(L+1)=0.37,0.31,0.24$ | `typeB_supnorm_check.py` |
+| $\mathrm{EM}(L)\approx1.3$, geometric decay of $\#\{M_p\ge k\}$ | `geometric_decay.py`, `typeB_moments_conditional_check.py` |
+| $k=2$ inventory: $p^2\mid N$ doubles are all Mersenne squares | `typeB_k2_inventory.py` |
+| wall (B) first moment, exceptional fraction | `typeB_wall_first_moment.py` |
 | base-independence / universality of the mechanism | `universality.py` |
-| larger-sieve / occupation / digit checks (landscape) | `larger_sieve_test.py`, `chantierB_occupation.py`, `chantierF_digits.py` |
+| larger-sieve / occupation / digit checks (landscape) | `larger_sieve_test.py`, `landscape_occupation_test.py`, `landscape_digit_weight_check.py` |
 
 ## Layout
 

@@ -668,8 +668,8 @@ $p^2$-degenerate residue ($2^l+2^m\equiv0\bmod p^2$) is unreachable in range for
 Type~A, as it needs $m-l\asymp\ord_{p^2}(2)/2>L$. Both bands are $o(L^{8/3}/\log L)$,
 absorbed. \textup{(}Numerically the band holds $8,15,16,23,43$ primes for
 $L=60,\dots,300$, always $\max p<L^{4/3}$, and the ratio $r_p(b)/\ep^{2/3}<1$ with no
-drift to $\ep\approx900$; scripts \texttt{chantierD\_stepanov.py},
-\texttt{chantierG\_band.py}.\textup{)}
+drift to $\ep\approx900$; scripts \texttt{typeA\_garcia\_voloch\_check.py},
+\texttt{typeA\_exceptional\_band.py}.\textup{)}
 \end{proof}
 
 This is short of the target $o(L^2)$ by a factor $L^{2/3}$. Hypothesis (TA) is thus
@@ -812,7 +812,7 @@ $\bmod\,p$ \textup{(}order $\ep>\sqrt p$\textup{)}.
 
 Numerically $\max_{p\nmid\xi}|S(\xi)|/(L+1)=0.37,0.31,0.24$ at $L=40,80,120$ on
 Type~B primes -- well below $1$ and decreasing (script
-\texttt{chantierH\_supnorm.py}). The counter-example (4.23) in \cite{BourgainChang2006},
+\texttt{typeB\_supnorm\_check.py}). The counter-example (4.23) in \cite{BourgainChang2006},
 $\theta=1+p$ (order $1\bmod p$, hence no cancellation), is exactly why Type~A
 ($\ep\le L$, small order $\bmod\,p$) is \emph{not} covered by
 Theorem~\ref{thm:bc}: the Type~A/Type~B split is forced, Type~A being the
@@ -996,7 +996,7 @@ This is the structural counterpart of the impossibility noted in
 \S\ref{sec:open}: there is simply not enough mass in $\sum_{p>L^2}1/p^2$
 (which is $<\sum_{p\ge3}1/p^2=0.2022\ldots$) for the wide range (B) to matter
 on average, even though it is the numerically dominant range. Numerically
-(script \texttt{checkB.py}), the fraction of $n$ with a nonzero (B)-contribution
+(script \texttt{typeB\_wall\_first\_moment.py}), the fraction of $n$ with a nonzero (B)-contribution
 is $0\%,3.4\%,5.4\%$ at $L=15,18,22$, average contribution $\le0.056$, in line
 with $(L+1)^2\sum_{p>L^2}1/p^2\approx0.13$ (slowly decreasing).
 
